@@ -25,3 +25,7 @@ body {
     text-wrap: balance;
   }
 }
+
+button {
+  @apply text-sm text-nowrap px-2 py-1 rounded-lg border shadow-sm;
+}

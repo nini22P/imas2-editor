@@ -3,9 +3,10 @@
 import DialogEditor from "@/components/DialogEditor";
 import MailEditor from "@/components/MailEditor";
 import Navbar from "@/components/Navbar";
+import XmbEditor from "@/components/XmbEditor";
 import { useState } from "react";
 
-export type JsonType = "dialog" | "mail";
+export type JsonType = "dialog" | "mail" | "xmb";
 
 export interface DialogJson {
   filename: string;
@@ -40,12 +41,21 @@ export interface MailJson {
   }
 }
 
+export interface XmbItem {
+  "_offset": number;
+  "_offsetHex": string;
+  "_text": string;
+  "_size": number;
+};
+
+export type XmbJson = XmbItem[]
+
 export default function Home() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [jsonType, setJsonType] = useState<JsonType | null>(null);
-  const [jsonData, setJsonData] = useState<DialogJson | MailJson | null>(null);
-  const [translateJson, setTranslateJson] = useState<DialogJson | MailJson | null>(null);
+  const [jsonData, setJsonData] = useState<DialogJson | MailJson | XmbJson | null>(null);
+  const [translateJson, setTranslateJson] = useState<DialogJson | MailJson | XmbJson | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
@@ -61,11 +71,13 @@ export default function Home() {
       try {
         const fileContent = event.target?.result;
         if (fileContent) {
-          const json: DialogJson | MailJson = JSON.parse(fileContent as string);
+          const json: DialogJson | MailJson | XmbJson = JSON.parse(fileContent as string);
           if ("filename" in json && json.filename && "strings" in json && json.strings) {
             setJsonType("dialog");
           } else if ("root" in json && json.root && "mail" in json.root && json.root.mail) {
             setJsonType("mail");
+          } else if (Array.isArray(json) && "_offset" in json[0]) {
+            setJsonType("xmb");
           }
           setJsonData(json);
           setTranslateJson(json);
@@ -119,6 +131,15 @@ export default function Home() {
           <MailEditor
             jsonData={jsonData as MailJson}
             translateJson={translateJson as MailJson}
+            setTranslateJson={setTranslateJson}
+          />
+        }
+        {
+          jsonType === "xmb" && translateJson
+          &&
+          <XmbEditor
+            jsonData={jsonData as XmbJson}
+            translateJson={translateJson as XmbJson}
             setTranslateJson={setTranslateJson}
           />
         }

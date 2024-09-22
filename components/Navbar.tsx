@@ -1,10 +1,10 @@
-import { DialogJson, MailJson } from "@/app/page";
+import { DialogJson, MailJson, XmbJson } from "@/app/page";
 import { useRef } from "react";
 
 const Navbar = ({ selectedFile, jsonData, handleFileChange, savetranslateJson }
   : {
     selectedFile: File | null,
-    jsonData: DialogJson | MailJson | null,
+    jsonData: DialogJson | MailJson | XmbJson | null,
     handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
     savetranslateJson: () => void,
   }) => {

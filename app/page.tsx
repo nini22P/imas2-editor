@@ -5,6 +5,7 @@ import MailEditor from "@/components/MailEditor";
 import Navbar from "@/components/Navbar";
 import XmbEditor from "@/components/XmbEditor";
 import { useState } from "react";
+import _ from "lodash";
 
 export type JsonType = "dialog" | "mail" | "xmb";
 
@@ -72,16 +73,20 @@ export default function Home() {
         const fileContent = event.target?.result;
         if (fileContent) {
           const json: DialogJson | MailJson | XmbJson = JSON.parse(fileContent as string);
+          console.log('读取 JSON 文件:', json);
           if ("filename" in json && json.filename && "strings" in json && json.strings) {
             setJsonType("dialog");
+            setJsonData(json);
+            setTranslateJson(json);
           } else if ("root" in json && json.root && "mail" in json.root && json.root.mail) {
             setJsonType("mail");
+            setJsonData(json);
+            setTranslateJson(json);
           } else if (Array.isArray(json) && "_offset" in json[0]) {
             setJsonType("xmb");
+            setJsonData(json);
+            setTranslateJson(_.uniqBy(json, "_offset"));
           }
-          setJsonData(json);
-          setTranslateJson(json);
-          console.log('读取 JSON 文件:', json);
         }
       } catch (error) {
         console.error('JSON 解析错误:', error);

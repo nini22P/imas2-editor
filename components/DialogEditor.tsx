@@ -30,9 +30,9 @@ const DialogEditor = ({ jsonData, translateJson, setTranslateJson }
                 className={`text-sm font-light px-2 py-1 rounded-lg 
                   ${dialogItem.split('\n').length !== translateJson.strings[index].split('\n').length
                     ? "bg-red-200"
-                    : dialogItem === translateJson.strings[index]
-                      ? "bg-yellow-100"
-                      : "bg-green-100"}
+                    // : dialogItem === translateJson.strings[index]
+                    //   ? "bg-yellow-100"
+                    : "bg-green-100"}
                 `}
               >
                 译文 {index + 1}

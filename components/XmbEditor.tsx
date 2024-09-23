@@ -5,9 +5,10 @@ import { XmbJson } from "@/app/page";
 const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
   : { jsonData: XmbJson, translateJson: XmbJson, setTranslateJson: (json: XmbJson) => void }) => {
 
-  const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
+  const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>, offset: number) => {
     const newXmbJson = [...translateJson];
-    newXmbJson[index] = { ...newXmbJson[index], _text: event.target.value };
+    const newXmbJsonIndex = newXmbJson.findIndex(xmbItem => xmbItem._offset === offset);
+    newXmbJson[newXmbJsonIndex] = { ...newXmbJson[newXmbJsonIndex], _text: event.target.value };
     setTranslateJson(newXmbJson);
   };
 
@@ -69,9 +70,9 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
                   ${xmbItem._text.split('\n').length !== translateJson.find(item => item._offset === xmbItem._offset)?._text.split('\n').length
                         || !checkByteLength(translateJson.find(item => item._offset === xmbItem._offset)?._text || '', xmbItem._size)
                         ? "bg-red-200"
-                        : xmbItem._text === translateJson.find(item => item._offset === xmbItem._offset)?._text
-                          ? "bg-yellow-100"
-                          : "bg-green-100"}
+                        // : xmbItem._text === translateJson.find(item => item._offset === xmbItem._offset)?._text
+                        //   ? "bg-yellow-100"
+                        : "bg-green-100"}
                 `}
                   >
                     译文 {index + 1}
@@ -79,7 +80,7 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
                   <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1 py-[0.1rem] ml-1'>删除</button>
                   <TextareaAutosize
                     value={translateJson.find(item => item._offset === xmbItem._offset)?._text || ''}
-                    onChange={(event) => handleTextChange(event, index)}
+                    onChange={(event) => handleTextChange(event, xmbItem._offset)}
                     className="w-full bg-slate-100 p-1 rounded-lg resize-none"
                   />
                 </div>

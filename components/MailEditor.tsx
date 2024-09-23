@@ -46,9 +46,9 @@ const MailEditor = ({ jsonData, translateJson, setTranslateJson }
                   className={`text-sm font-light px-2 py-1 rounded-lg 
                     ${mailItem.body.text_node["@_text"].split('\n').length !== translateJson.root.mail[index].body.text_node["@_text"].split('\n').length
                       ? "bg-red-100"
-                      : mailItem.body.text_node["@_text"] === translateJson.root.mail[index].body.text_node["@_text"]
-                        ? "bg-yellow-100"
-                        : "bg-green-100"}
+                      // : mailItem.body.text_node["@_text"] === translateJson.root.mail[index].body.text_node["@_text"]
+                      //   ? "bg-yellow-100"
+                      : "bg-green-100"}
                   `}
                 >
                   译文 {index + 1}

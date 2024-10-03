@@ -1,6 +1,7 @@
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { XmbJson } from "@/app/page";
+import checkCharacters from '@/utils/checkCharacters';
 
 const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
   : { jsonData: XmbJson, translateJson: XmbJson, setTranslateJson: (json: XmbJson) => void }) => {
@@ -64,20 +65,40 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
             </div>
             {
               translateJson.find(item => item._offset === xmbItem._offset)
-                ? <div className="space-y-1">
-                  <span
-                    className={`text-sm font-light px-2 py-1 rounded-lg 
-                  ${xmbItem._text.split('\n').length !== translateJson.find(item => item._offset === xmbItem._offset)?._text.split('\n').length
-                        || !checkByteLength(translateJson.find(item => item._offset === xmbItem._offset)?._text || '', xmbItem._size)
-                        ? "bg-red-200"
-                        // : xmbItem._text === translateJson.find(item => item._offset === xmbItem._offset)?._text
-                        //   ? "bg-yellow-100"
-                        : "bg-green-100"}
-                `}
-                  >
-                    译文 {index + 1}
+                ?
+                <div className="space-y-1">
+                  <span className="space-x-1">
+                    <span
+                      className={`text-sm font-light px-2 py-1 rounded-lg 
+                        ${
+                        // (translateJson.find(item => item._offset === xmbItem._offset)?._text.split('\n').length || 0) > xmbItem._text.split('\n').length || 
+                        !checkByteLength(translateJson.find(item => item._offset === xmbItem._offset)?._text || '', xmbItem._size) ||
+                          checkCharacters(translateJson.find(item => item._offset === xmbItem._offset)?._text || '').length > 0
+                          ? "bg-red-100"
+                          // : xmbItem._text === translateJson.find(item => item._offset === xmbItem._offset)?._text
+                          //   ? "bg-yellow-100"
+                          : "bg-green-100"
+                        }
+                      `}
+                    >
+                      译文 {index + 1}
+                    </span>
+                    {
+                      !checkByteLength(translateJson.find(item => item._offset === xmbItem._offset)?._text || '', xmbItem._size)
+                      &&
+                      <span className='text-xs font px-2 py-1 rounded-lg bg-red-400'>
+                        字符长度超出
+                      </span>
+                    }
+                    {
+                      checkCharacters(translateJson.find(item => item._offset === xmbItem._offset)?._text || '').length > 0
+                      &&
+                      <span className='text-sm font-light px-2 py-1 rounded-lg bg-red-300'>
+                        {checkCharacters(translateJson.find(item => item._offset === xmbItem._offset)?._text || '').join('')}
+                      </span>
+                    }
+                    <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1 py-[0.1rem]'>删除</button>
                   </span>
-                  <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1 py-[0.1rem] ml-1'>删除</button>
                   <TextareaAutosize
                     value={translateJson.find(item => item._offset === xmbItem._offset)?._text || ''}
                     onChange={(event) => handleTextChange(event, xmbItem._offset)}

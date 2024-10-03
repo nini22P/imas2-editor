@@ -1,6 +1,7 @@
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { MailJson } from "@/app/page";
+import { MailItem, MailJson } from "@/app/page";
+import checkCharacters from '@/utils/checkCharacters';
 
 const MailEditor = ({ jsonData, translateJson, setTranslateJson }
   : { jsonData: MailJson, translateJson: MailJson, setTranslateJson: (json: MailJson) => void }) => {
@@ -16,6 +17,11 @@ const MailEditor = ({ jsonData, translateJson, setTranslateJson }
     newMail[index].subject.text_node["@_text"] = event.target.value;
     setTranslateJson({ root: { mail: newMail } });
   }
+
+  const getInvalidChars = (mailItem: MailItem) => checkCharacters([mailItem.body.text_node['@_text'], mailItem.subject.text_node['@_text']].join(''))
+
+  const invalidChars = (translateJson.root.mail.map(mailItem => getInvalidChars(mailItem))).flat()
+  console.log(invalidChars);
 
   return (
     <div className="p-4 space-y-2 max-w-4xl mx-auto">
@@ -42,16 +48,28 @@ const MailEditor = ({ jsonData, translateJson, setTranslateJson }
             </div>
             <div className="space-y-1">
               <div className="flex justify-between">
-                <span
-                  className={`text-sm font-light px-2 py-1 rounded-lg 
-                    ${mailItem.body.text_node["@_text"].split('\n').length !== translateJson.root.mail[index].body.text_node["@_text"].split('\n').length
-                      ? "bg-red-100"
-                      // : mailItem.body.text_node["@_text"] === translateJson.root.mail[index].body.text_node["@_text"]
-                      //   ? "bg-yellow-100"
-                      : "bg-green-100"}
+                <span className='space-x-1'>
+                  <span
+                    className={`text-sm font-light px-2 py-1 rounded-lg 
+                      ${
+                      // mailItem.body.text_node["@_text"].split('\n').length !== translateJson.root.mail[index].body.text_node["@_text"].split('\n').length ||
+                      getInvalidChars(translateJson.root.mail[index]).length > 0
+                        ? "bg-red-100"
+                        // : mailItem.body.text_node["@_text"] === translateJson.root.mail[index].body.text_node["@_text"]
+                        //   ? "bg-yellow-100"
+                        : "bg-green-100"
+                      }
                   `}
-                >
-                  译文 {index + 1}
+                  >
+                    译文 {index + 1}
+                  </span>
+                  {
+                    getInvalidChars(translateJson.root.mail[index]).length > 0
+                    &&
+                    <span className='text-sm font-light px-2 py-1 rounded-lg bg-red-300'>
+                      {getInvalidChars(translateJson.root.mail[index]).join('')}
+                    </span>
+                  }
                 </span>
                 <input
                   type="text"

@@ -1,6 +1,7 @@
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { DialogJson } from "@/app/page";
+import checkCharacters from '../utils/checkCharacters';
 
 const DialogEditor = ({ jsonData, translateJson, setTranslateJson }
   : { jsonData: DialogJson, translateJson: DialogJson, setTranslateJson: (json: DialogJson) => void }) => {
@@ -26,16 +27,28 @@ const DialogEditor = ({ jsonData, translateJson, setTranslateJson }
               />
             </div>
             <div className="space-y-1">
-              <span
-                className={`text-sm font-light px-2 py-1 rounded-lg 
-                  ${dialogItem.split('\n').length !== translateJson.strings[index].split('\n').length
-                    ? "bg-red-200"
-                    // : dialogItem === translateJson.strings[index]
-                    //   ? "bg-yellow-100"
-                    : "bg-green-100"}
+              <span className='space-x-1'>
+                <span
+                  className={`text-sm font-light px-2 py-1 rounded-lg 
+                    ${
+                    // dialogItem.split('\n').length !== translateJson.strings[index].split('\n').length ||
+                    checkCharacters(translateJson.strings[index]).length > 0
+                      ? "bg-red-100"
+                      // : dialogItem === translateJson.strings[index]
+                      //   ? "bg-yellow-100"
+                      : "bg-green-100"
+                    }
                 `}
-              >
-                译文 {index + 1}
+                >
+                  译文 {index + 1}
+                </span>
+                {
+                  checkCharacters(translateJson.strings[index]).length > 0
+                  &&
+                  <span className='text-sm font-light px-2 py-1 rounded-lg bg-red-300'>
+                    {checkCharacters(translateJson.strings[index]).join('')}
+                  </span>
+                }
               </span>
               <TextareaAutosize
                 value={translateJson.strings[index]}

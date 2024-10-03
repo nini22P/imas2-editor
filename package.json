@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node utils/charactersProcessor.mjs && next dev",
+    "build": "node utils/charactersProcessor.mjs && next build",
+    "start": "node utils/charactersProcessor.mjs && next start",
     "lint": "next lint"
   },
   "dependencies": {
@@ -13,7 +13,8 @@
     "next": "14.2.12",
     "react": "^18",
     "react-dom": "^18",
-    "react-textarea-autosize": "^8.5.3"
+    "react-textarea-autosize": "^8.5.3",
+    "swr": "^2.2.5"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.7",

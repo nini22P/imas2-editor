@@ -120,7 +120,7 @@ export default function Home() {
         handleFileChange={handleFileChange}
         savetranslateJson={savetranslateJson}
       />
-      <main className="pt-12">
+      <main className="py-12">
         {
           jsonType === "dialog" && translateJson
           &&

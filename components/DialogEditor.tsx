@@ -64,7 +64,7 @@ const DialogEditor = ({ jsonData, translateJson, setTranslateJson }
                 <TextareaAutosize
                   value={translateJson.strings[startIndex + index]}
                   onChange={(event) => handleTextChange(event, startIndex + index)}
-                  className="w-full bg-slate-100 p-1 rounded-lg resize-none"
+                  className="w-full bg-slate-100 p-1 rounded-lg resize-none shadow-inner-sm"
                 />
               </div>
             </div>

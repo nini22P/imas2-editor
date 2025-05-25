@@ -43,6 +43,7 @@ const MailEditor = ({ jsonData, translateJson, setTranslateJson }
                 <div className="flex justify-between">
                   <span className="text-sm font-light bg-cyan-100 px-2 py-1 rounded-lg">原文 {startIndex + index + 1}</span>
                   <input
+                    title="原文"
                     type="text"
                     value={mailItem.subject.text_node["@_text"]}
                     disabled
@@ -83,6 +84,7 @@ const MailEditor = ({ jsonData, translateJson, setTranslateJson }
                     }
                   </span>
                   <input
+                    title="译文"
                     type="text"
                     value={translateJson.root.mail[startIndex + index].subject.text_node["@_text"]}
                     onChange={(event) => handleSubjectTextChange(event, startIndex + index)}

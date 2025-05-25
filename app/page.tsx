@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import XmbEditor from "@/components/XmbEditor";
 import { useState } from "react";
 import _ from "lodash";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 export type JsonType = "dialog" | "mail" | "xmb";
 
@@ -53,15 +54,20 @@ export type XmbJson = XmbItem[]
 
 export default function Home() {
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
   const [jsonType, setJsonType] = useState<JsonType | null>(null);
   const [jsonData, setJsonData] = useState<DialogJson | MailJson | XmbJson | null>(null);
   const [translateJson, setTranslateJson] = useState<DialogJson | MailJson | XmbJson | null>(null);
 
+  useLocalStorage('fileName', fileName, setFileName);
+  useLocalStorage('jsonType', jsonType, setJsonType);
+  useLocalStorage('jsonData', jsonData, setJsonData);
+  useLocalStorage('translateJson', translateJson, setTranslateJson);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
-    setSelectedFile(file);
     if (file) {
+      setFileName(file.name);
       readJsonFile(file);
     }
   };
@@ -96,7 +102,7 @@ export default function Home() {
   };
 
   const savetranslateJson = () => {
-    if (selectedFile && translateJson) {
+    if (fileName && translateJson) {
       const jsonString = JSON.stringify(translateJson, null, 2);
 
       const blob = new Blob([jsonString], { type: 'application/json' });
@@ -105,7 +111,7 @@ export default function Home() {
 
       const a = document.createElement('a');
       a.href = url;
-      a.download = selectedFile.name;
+      a.download = fileName;
       a.click();
 
       URL.revokeObjectURL(url);
@@ -115,7 +121,7 @@ export default function Home() {
   return (
     <div>
       <Navbar
-        selectedFile={selectedFile}
+        fileName={fileName}
         jsonData={jsonData}
         handleFileChange={handleFileChange}
         savetranslateJson={savetranslateJson}

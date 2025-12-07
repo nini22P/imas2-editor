@@ -29,6 +29,20 @@ const XmbEditor = ({ data, setData }
     setData(newData);
   }
 
+  const splitStringByLength = (str: string, len: number) => {
+    const regex = new RegExp(`.{1,${len}}`, 'g');
+    return str.match(regex) || [];
+  }
+
+  const handleClickAutoFormat = (offset: number) => {
+    const index = data.findIndex(xmbItem => xmbItem._offset === offset);
+    const newData = [...data];
+    const newText = newData[index].translate?.split('\n').map(line => splitStringByLength(line, 14).join('\n')).join('\n')
+    if (newText)
+      newData[index] = { ...newData[index], translate: newText };
+    setData(newData);
+  }
+
   const getUTF16BEByteLength = (str: string) => {
     let byteLength = 0;
 
@@ -112,6 +126,8 @@ const XmbEditor = ({ data, setData }
                           {checkCharacters(data.find(item => item._offset === xmbItem._offset)?.translate || '').join('')}
                         </span>
                       }
+                      <span className='flex-1'></span>
+                      <button onClick={() => handleClickAutoFormat(xmbItem._offset)} className='text-xs px-1'>邮件自动排版</button>
                       <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1'>删除</button>
                     </span>
                     <TextareaAutosize

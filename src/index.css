@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --background: #ffffff;
@@ -27,5 +25,5 @@ body {
 }
 
 button {
-  @apply text-sm text-nowrap px-2 py-1 rounded-lg border shadow-sm;
+  @apply text-sm text-nowrap px-2 py-0.25 rounded-md shadow-sm cursor-pointer;
 }

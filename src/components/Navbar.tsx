@@ -1,5 +1,5 @@
-import { DialogJson, MailJson, XmbJson } from "@/app/page";
 import { useRef } from "react";
+import type { DialogJson, MailJson, XmbJson } from "../App";
 
 const Navbar = ({ fileName, jsonData, handleFileChange, savetranslateJson }
   : {
@@ -26,7 +26,7 @@ const Navbar = ({ fileName, jsonData, handleFileChange, savetranslateJson }
         {filename && `${filename}`}
       </p>
       <div className="flex gap-2">
-        <input accept=".json" type="file"　title="打开文件" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
+        <input accept=".json" type="file" title="打开文件" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
         <button onClick={handleOpenClick}>打开</button>
         <button onClick={savetranslateJson}>保存</button>
       </div>

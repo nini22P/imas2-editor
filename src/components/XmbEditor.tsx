@@ -1,9 +1,9 @@
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { XmbJson } from "@/app/page";
-import checkCharacters from '@/utils/checkCharacters';
 import { useState } from 'react';
 import PageChanger from './PageChanger';
+import type { XmbJson } from '../App';
+import checkCharacters from '../utils/checkCharacters';
 
 const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
   : { jsonData: XmbJson, translateJson: XmbJson, setTranslateJson: (json: XmbJson) => void }) => {
@@ -15,10 +15,10 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
     setTranslateJson(newXmbJson);
   };
 
-  const handleClickRemove = (offset: number) => {
-    const newXmbJson = [...translateJson].filter((xmbItem) => xmbItem._offset !== offset);
-    setTranslateJson(newXmbJson);
-  }
+  // const handleClickRemove = (offset: number) => {
+  //   const newXmbJson = [...translateJson].filter((xmbItem) => xmbItem._offset !== offset);
+  //   setTranslateJson(newXmbJson);
+  // }
 
   const handleClickAdd = (index: number) => {
     const newXmbJson = [...translateJson, jsonData[index]!];
@@ -111,7 +111,7 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
                           {checkCharacters(translateJson.find(item => item._offset === xmbItem._offset)?._text || '').join('')}
                         </span>
                       }
-                      <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1 py-[0.1rem]'>删除</button>
+                      {/* <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1 py-[0.1rem]'>删除</button> */}
                     </span>
                     <TextareaAutosize
                       value={translateJson.find(item => item._offset === xmbItem._offset)?._text || ''}

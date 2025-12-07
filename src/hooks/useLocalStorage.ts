@@ -14,7 +14,7 @@ const useLocalStorage = <T>(
       console.log('save');
       localStorage.setItem(key, data);
     },
-    [value, init]
+    [value, init, key]
   )
 
   useEffect(
@@ -22,9 +22,10 @@ const useLocalStorage = <T>(
       const item = localStorage.getItem(key);
       console.log('restore');
       setValue(item ? JSON.parse(item) : null);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInit(true);
     },
-    []
+    [key, setValue]
   )
 }
 

@@ -1,9 +1,9 @@
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { DialogJson } from "@/app/page";
 import checkCharacters from '../utils/checkCharacters';
 import { useState } from 'react';
 import PageChanger from './PageChanger';
+import type { DialogJson } from '../App';
 
 const DialogEditor = ({ jsonData, translateJson, setTranslateJson }
   : { jsonData: DialogJson, translateJson: DialogJson, setTranslateJson: (json: DialogJson) => void }) => {

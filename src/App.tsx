@@ -1,12 +1,10 @@
-"use client";
-
-import DialogEditor from "@/components/DialogEditor";
-import MailEditor from "@/components/MailEditor";
-import Navbar from "@/components/Navbar";
-import XmbEditor from "@/components/XmbEditor";
 import { useState } from "react";
 import _ from "lodash";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useLocalStorage from "./hooks/useLocalStorage";
+import Navbar from "./components/Navbar";
+import DialogEditor from "./components/DialogEditor";
+import MailEditor from "./components/MailEditor";
+import XmbEditor from "./components/XmbEditor";
 
 export type JsonType = "dialog" | "mail" | "xmb";
 
@@ -52,7 +50,7 @@ export interface XmbItem {
 
 export type XmbJson = XmbItem[]
 
-export default function Home() {
+export default function App() {
 
   const [fileName, setFileName] = useState<string | null>(null);
   const [jsonType, setJsonType] = useState<JsonType | null>(null);

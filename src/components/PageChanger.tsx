@@ -8,7 +8,10 @@ const PageChanger = ({ totalPages, currentPage, handlePageChange }: { totalPages
         {Array.from({ length: totalPages }, (_, index) => (
           <button
             key={index + 1}
-            onClick={() => handlePageChange(index + 1)}
+            onClick={() => {
+              handlePageChange(index + 1);
+              window.scrollTo(0, 0);
+            }}
             style={{
               backgroundColor: currentPage === index + 1 ? 'lightblue' : 'white',
             }}

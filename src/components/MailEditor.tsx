@@ -1,9 +1,9 @@
 import TextareaAutosize from 'react-textarea-autosize';
 
-import { MailItem, MailJson } from "@/app/page";
-import checkCharacters from '@/utils/checkCharacters';
 import { useState } from 'react';
 import PageChanger from './PageChanger';
+import type { MailJson, MailItem } from '../App';
+import checkCharacters from '../utils/checkCharacters';
 
 const MailEditor = ({ jsonData, translateJson, setTranslateJson }
   : { jsonData: MailJson, translateJson: MailJson, setTranslateJson: (json: MailJson) => void }) => {

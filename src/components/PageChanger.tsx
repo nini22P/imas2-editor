@@ -4,7 +4,7 @@ const PageChanger = ({ totalPages, currentPage, handlePageChange }: { totalPages
   }
   return (
     <div className='fixed bottom-0 p-2 w-full m-auto'>
-      <div className='w-fit m-auto p-1 rounded-lg bg-[#f0f0f0cc] shadow flex flex-wrap gap-1 backdrop-blur-lg'>
+      <div className='w-fit m-auto p-1 rounded bg-[#f0f0f0cc] shadow flex flex-wrap gap-1 backdrop-blur-lg'>
         {Array.from({ length: totalPages }, (_, index) => (
           <button
             key={index + 1}

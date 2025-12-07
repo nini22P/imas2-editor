@@ -3,64 +3,35 @@ import _ from "lodash";
 import useLocalStorage from "./hooks/useLocalStorage";
 import Navbar from "./components/Navbar";
 import DialogEditor from "./components/DialogEditor";
-import MailEditor from "./components/MailEditor";
 import XmbEditor from "./components/XmbEditor";
 
-export type JsonType = "dialog" | "mail" | "xmb";
+export type Type = "dialog" | "xmb";
 
-export interface DialogJson {
+export interface Dialog {
   filename: string;
   strings: string[];
+  translate: string[];
 };
-
-export interface MailItem {
-  "@id": string;
-  "subject": {
-    "@id": string;
-    "text_node": {
-      "@_text": string;
-    };
-  },
-  "body": {
-    "@id": string;
-    "text_node": {
-      "@_text": string;
-    };
-  },
-  "atc": {
-    "@id": string;
-    "text_node": {
-      "@_text": string;
-    };
-  }
-}
-
-export interface MailJson {
-  root: {
-    mail: MailItem[];
-  }
-}
 
 export interface XmbItem {
   "_offset": number;
   "_offsetHex": string;
   "_text": string;
   "_size": number;
+  translate: string | null;
 };
 
-export type XmbJson = XmbItem[]
+export type Xmb = XmbItem[]
 
 export default function App() {
 
   const [fileName, setFileName] = useState<string | null>(null);
-  const [jsonType, setJsonType] = useState<JsonType | null>(null);
-  const [jsonData, setJsonData] = useState<DialogJson | MailJson | XmbJson | null>(null);
-  const [translateJson, setTranslateJson] = useState<DialogJson | MailJson | XmbJson | null>(null);
+  const [type, setType] = useState<Type | null>(null);
+  const [data, setData] = useState<Dialog | Xmb | null>(null);
 
   useLocalStorage('fileName', fileName, setFileName);
-  useLocalStorage('jsonType', jsonType, setJsonType);
-  useLocalStorage('jsonData', jsonData, setJsonData);
-  useLocalStorage('translateJson', translateJson, setTranslateJson);
+  useLocalStorage('type', type, setType);
+  useLocalStorage('data', data, setData);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
@@ -76,20 +47,22 @@ export default function App() {
       try {
         const fileContent = event.target?.result;
         if (fileContent) {
-          const json: DialogJson | MailJson | XmbJson = JSON.parse(fileContent as string);
-          console.log('读取 JSON 文件:', json);
-          if ("filename" in json && json.filename && "strings" in json && json.strings) {
-            setJsonType("dialog");
-            setJsonData(json);
-            setTranslateJson(json);
-          } else if ("root" in json && json.root && "mail" in json.root && json.root.mail) {
-            setJsonType("mail");
-            setJsonData(json);
-            setTranslateJson(json);
-          } else if (Array.isArray(json) && "_offset" in json[0]) {
-            setJsonType("xmb");
-            setJsonData(_.uniqBy(json, "_offset"));
-            setTranslateJson(_.uniqBy(json, "_offset"));
+          const data: Dialog | Xmb = JSON.parse(fileContent as string);
+          console.log('读取 JSON 文件:', data);
+          if ("filename" in data && data.filename && "strings" in data && data.strings) {
+            setType("dialog");
+            if (data.translate === undefined) {
+              data.translate = data.strings;
+            }
+            setData(data);
+          } else if (Array.isArray(data) && "_offset" in data[0]) {
+            setType("xmb");
+            data.forEach((item: XmbItem) => {
+              if (item.translate === undefined) {
+                item.translate = item._text;
+              }
+            });
+            setData(_.uniqBy(data, "_offset"));
           }
         }
       } catch (error) {
@@ -100,8 +73,14 @@ export default function App() {
   };
 
   const savetranslateJson = () => {
-    if (fileName && translateJson) {
-      const jsonString = JSON.stringify(translateJson, null, 2);
+    if (fileName && data && type) {
+      let saveData = data;
+
+      if (type === 'xmb') {
+        saveData = (data as Xmb).filter(item => item.translate !== null)
+      }
+
+      const jsonString = JSON.stringify(saveData, null, 2);
 
       const blob = new Blob([jsonString], { type: 'application/json' });
 
@@ -120,39 +99,32 @@ export default function App() {
     <div>
       <Navbar
         fileName={fileName}
-        jsonData={jsonData}
+        data={data}
         handleFileChange={handleFileChange}
         savetranslateJson={savetranslateJson}
       />
-      <main className="py-12">
-        {
-          jsonType === "dialog" && translateJson
-          &&
-          <DialogEditor
-            jsonData={jsonData as DialogJson}
-            translateJson={translateJson as DialogJson}
-            setTranslateJson={setTranslateJson}
-          />
-        }
-        {
-          jsonType === "mail" && translateJson
-          &&
-          <MailEditor
-            jsonData={jsonData as MailJson}
-            translateJson={translateJson as MailJson}
-            setTranslateJson={setTranslateJson}
-          />
-        }
-        {
-          jsonType === "xmb" && translateJson
-          &&
-          <XmbEditor
-            jsonData={jsonData as XmbJson}
-            translateJson={translateJson as XmbJson}
-            setTranslateJson={setTranslateJson}
-          />
-        }
-      </main>
+      {
+        data &&
+        <main className="py-12">
+          {
+            type === "dialog"
+            &&
+            <DialogEditor
+              data={data as Dialog}
+              setData={setData}
+            />
+          }
+          {
+            type === "xmb"
+            &&
+            <XmbEditor
+              data={data as Xmb}
+              setData={setData}
+            />
+          }
+        </main>
+      }
+
     </div>
   );
 }

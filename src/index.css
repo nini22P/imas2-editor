@@ -5,13 +5,6 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   color: var(--foreground);
   background: var(--background);
@@ -25,5 +18,5 @@ body {
 }
 
 button {
-  @apply text-sm text-nowrap px-2 py-0.25 rounded-md shadow-sm cursor-pointer;
+  @apply text-sm text-nowrap px-2 rounded shadow-sm cursor-pointer bg-gray-50 hover:bg-gray-100;
 }

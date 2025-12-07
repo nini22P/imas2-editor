@@ -2,32 +2,31 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 import { useState } from 'react';
 import PageChanger from './PageChanger';
-import type { XmbJson } from '../App';
+import type { Xmb } from '../App';
 import checkCharacters from '../utils/checkCharacters';
 
-const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
-  : { jsonData: XmbJson, translateJson: XmbJson, setTranslateJson: (json: XmbJson) => void }) => {
+const XmbEditor = ({ data, setData }
+  : { data: Xmb, setData: (json: Xmb) => void }) => {
 
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>, offset: number) => {
-    const newXmbJson = [...translateJson];
+    const newXmbJson = [...data];
     const newXmbJsonIndex = newXmbJson.findIndex(xmbItem => xmbItem._offset === offset);
-    newXmbJson[newXmbJsonIndex] = { ...newXmbJson[newXmbJsonIndex], _text: event.target.value };
-    setTranslateJson(newXmbJson);
+    newXmbJson[newXmbJsonIndex] = { ...newXmbJson[newXmbJsonIndex], translate: event.target.value };
+    setData(newXmbJson);
   };
 
-  // const handleClickRemove = (offset: number) => {
-  //   const newXmbJson = [...translateJson].filter((xmbItem) => xmbItem._offset !== offset);
-  //   setTranslateJson(newXmbJson);
-  // }
+  const handleClickRemove = (offset: number) => {
+    const index = data.findIndex(xmbItem => xmbItem._offset === offset);
+    const newXmbJson = [...data];
+    newXmbJson[index] = { ...newXmbJson[index], translate: null };
+    setData(newXmbJson);
+  }
 
-  const handleClickAdd = (index: number) => {
-    const newXmbJson = [...translateJson, jsonData[index]!];
-
-    const sortedXmbJson = jsonData
-      .filter(xmbItem => newXmbJson.some(item => item._offset === xmbItem._offset))
-      .map(xmbItem => newXmbJson.find(item => item._offset === xmbItem._offset)!);
-
-    setTranslateJson(sortedXmbJson);
+  const handleClickAdd = (offset: number) => {
+    const index = data.findIndex(xmbItem => xmbItem._offset === offset);
+    const newXmbJson = [...data];
+    newXmbJson[index] = { ...newXmbJson[index], translate: newXmbJson[index]._text };
+    setData(newXmbJson);
   }
 
   const getUTF16BEByteLength = (str: string) => {
@@ -53,15 +52,15 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
 
   const ITEMS_PER_PAGE = 40;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(jsonData.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = jsonData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const currentItems = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
     <>
-      <div className="p-4 space-y-2 max-w-6xl mx-auto">
+      <div className="p-4 space-y-1 max-w-6xl mx-auto">
         {
           currentItems.map((xmbItem, index) =>
             <div
@@ -69,25 +68,27 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
               className="grid grid-cols-2 max-lg:grid-cols-1 gap-2"
             >
               <div className="space-y-1">
-                <span className="text-sm font-light bg-cyan-100 px-2 py-1 rounded-lg">原文 {startIndex + index + 1}</span>
+                <span className="text-sm font-light bg-cyan-100 px-2 rounded">原文 {startIndex + index + 1}</span>
                 <TextareaAutosize
                   value={xmbItem._text}
                   disabled
                   readOnly
-                  className="w-full bg-gray-50 p-1 rounded-lg resize-none"
+                  className="w-full bg-stone-100 p-1 rounded resize-none"
                 />
               </div>
               {
-                translateJson.find(item => item._offset === xmbItem._offset)
+                xmbItem.translate == null
                   ?
+                  <button onClick={() => handleClickAdd(xmbItem._offset)}>添加</button>
+                  :
                   <div className="space-y-1">
-                    <span className="space-x-1">
+                    <span className="flex gap-1">
                       <span
-                        className={`text-sm font-light px-2 py-1 rounded-lg 
+                        className={`text-sm font-light px-2 rounded 
                         ${
                           // (translateJson.find(item => item._offset === xmbItem._offset)?._text.split('\n').length || 0) > xmbItem._text.split('\n').length || 
-                          !checkByteLength(translateJson.find(item => item._offset === xmbItem._offset)?._text || '', xmbItem._size) ||
-                            checkCharacters(translateJson.find(item => item._offset === xmbItem._offset)?._text || '').length > 0
+                          !checkByteLength(data.find(item => item._offset === xmbItem._offset)?.translate || '', xmbItem._size) ||
+                            checkCharacters(data.find(item => item._offset === xmbItem._offset)?.translate || '').length > 0
                             ? "bg-red-100"
                             // : xmbItem._text === translateJson.find(item => item._offset === xmbItem._offset)?._text
                             //   ? "bg-yellow-100"
@@ -98,28 +99,27 @@ const XmbEditor = ({ jsonData, translateJson, setTranslateJson }
                         译文 {startIndex + index + 1}
                       </span>
                       {
-                        !checkByteLength(translateJson.find(item => item._offset === xmbItem._offset)?._text || '', xmbItem._size)
+                        !checkByteLength(data.find(item => item._offset === xmbItem._offset)?.translate || '', xmbItem._size)
                         &&
-                        <span className='text-xs font px-2 py-1 rounded-lg bg-red-400'>
+                        <span className='text-xs font px-2 rounded bg-red-400'>
                           字符长度超出
                         </span>
                       }
                       {
-                        checkCharacters(translateJson.find(item => item._offset === xmbItem._offset)?._text || '').length > 0
+                        checkCharacters(data.find(item => item._offset === xmbItem._offset)?.translate || '').length > 0
                         &&
-                        <span className='text-sm font-light px-2 py-1 rounded-lg bg-red-300'>
-                          {checkCharacters(translateJson.find(item => item._offset === xmbItem._offset)?._text || '').join('')}
+                        <span className='text-sm font-light px-2 rounded bg-red-300'>
+                          {checkCharacters(data.find(item => item._offset === xmbItem._offset)?.translate || '').join('')}
                         </span>
                       }
-                      {/* <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1 py-[0.1rem]'>删除</button> */}
+                      <button onClick={() => handleClickRemove(xmbItem._offset)} className='text-xs px-1'>删除</button>
                     </span>
                     <TextareaAutosize
-                      value={translateJson.find(item => item._offset === xmbItem._offset)?._text || ''}
+                      value={data.find(item => item._offset === xmbItem._offset)?.translate || ''}
                       onChange={(event) => (handleTextChange(event, xmbItem._offset))}
-                      className="w-full bg-slate-100 p-1 rounded-lg resize-none"
+                      className="w-full bg-slate-100 p-1 rounded resize-none"
                     />
                   </div>
-                  : <button onClick={() => handleClickAdd(startIndex + index)}>添加</button>
               }
             </div>
           )

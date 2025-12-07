@@ -1,10 +1,10 @@
 import { useRef } from "react";
-import type { DialogJson, MailJson, XmbJson } from "../App";
+import type { Dialog, Xmb } from "../App";
 
-const Navbar = ({ fileName, jsonData, handleFileChange, savetranslateJson }
+const Navbar = ({ fileName, data, handleFileChange, savetranslateJson }
   : {
     fileName: string | null,
-    jsonData: DialogJson | MailJson | XmbJson | null,
+    data: Dialog | Xmb | null,
     handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
     savetranslateJson: () => void,
   }) => {
@@ -15,7 +15,7 @@ const Navbar = ({ fileName, jsonData, handleFileChange, savetranslateJson }
     fileInputRef.current?.click();
   };
 
-  const filename = (jsonData as DialogJson)?.filename;
+  const filename = (data as Dialog)?.filename;
 
   return (
     <div className="w-full h-12 px-4 shadow flex justify-between items-center fixed top-0 bg-white">

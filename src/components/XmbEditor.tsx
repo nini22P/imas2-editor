@@ -6,27 +6,27 @@ import type { Xmb } from '../App';
 import checkCharacters from '../utils/checkCharacters';
 
 const XmbEditor = ({ data, setData }
-  : { data: Xmb, setData: (json: Xmb) => void }) => {
+  : { data: Xmb, setData: (data: Xmb) => void }) => {
 
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>, offset: number) => {
-    const newXmbJson = [...data];
-    const newXmbJsonIndex = newXmbJson.findIndex(xmbItem => xmbItem._offset === offset);
-    newXmbJson[newXmbJsonIndex] = { ...newXmbJson[newXmbJsonIndex], translate: event.target.value };
-    setData(newXmbJson);
+    const index = data.findIndex(item => item._offset === offset);
+    const newXmbData = [...data];
+    newXmbData[index] = { ...newXmbData[index], translate: event.target.value };
+    setData(newXmbData);
   };
 
   const handleClickRemove = (offset: number) => {
-    const index = data.findIndex(xmbItem => xmbItem._offset === offset);
-    const newXmbJson = [...data];
-    newXmbJson[index] = { ...newXmbJson[index], translate: null };
-    setData(newXmbJson);
+    const index = data.findIndex(item => item._offset === offset);
+    const newData = [...data];
+    newData[index] = { ...newData[index], translate: null };
+    setData(newData);
   }
 
   const handleClickAdd = (offset: number) => {
     const index = data.findIndex(xmbItem => xmbItem._offset === offset);
-    const newXmbJson = [...data];
-    newXmbJson[index] = { ...newXmbJson[index], translate: newXmbJson[index]._text };
-    setData(newXmbJson);
+    const newData = [...data];
+    newData[index] = { ...newData[index], translate: newData[index]._text };
+    setData(newData);
   }
 
   const getUTF16BEByteLength = (str: string) => {

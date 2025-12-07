@@ -5,7 +5,7 @@ import { useState } from 'react';
 import PageChanger from './PageChanger';
 import type { Dialog } from '../App';
 
-const DialogEditor = ({ data, setData }: { data: Dialog, setData: (json: Dialog) => void }) => {
+const DialogEditor = ({ data, setData }: { data: Dialog, setData: (data: Dialog) => void }) => {
 
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
     const newStrings = [...data.translate];

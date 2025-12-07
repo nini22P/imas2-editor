@@ -90,7 +90,7 @@ export default function Home() {
             setTranslateJson(json);
           } else if (Array.isArray(json) && "_offset" in json[0]) {
             setJsonType("xmb");
-            setJsonData(json);
+            setJsonData(_.uniqBy(json, "_offset"));
             setTranslateJson(_.uniqBy(json, "_offset"));
           }
         }

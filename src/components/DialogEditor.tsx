@@ -40,12 +40,8 @@ const DialogEditor = ({ data, setData }: { data: Dialog, setData: (data: Dialog)
                 <span className="flex gap-1">
                   <span
                     className={`text-sm font-light px-2 rounded
-                    ${
-                      // dialogItem.split('\n').length !== translateJson.strings[index].split('\n').length ||
-                      checkCharacters(data.strings[startIndex + index]).length > 0
+                    ${checkCharacters(data.translate[startIndex + index]).length > 0
                         ? "bg-red-100"
-                        // : dialogItem === translateJson.strings[index]
-                        //   ? "bg-yellow-100"
                         : "bg-green-100"
                       }
                     `}

@@ -111,7 +111,7 @@ export default function App() {
             &&
             <DialogEditor
               data={data as Dialog}
-              setData={setData}
+              setData={setData as React.Dispatch<React.SetStateAction<Dialog>>}
             />
           }
           {
@@ -119,7 +119,7 @@ export default function App() {
             &&
             <XmbEditor
               data={data as Xmb}
-              setData={setData}
+              setData={setData as React.Dispatch<React.SetStateAction<Xmb>>}
             />
           }
         </main>

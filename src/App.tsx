@@ -80,9 +80,18 @@ export default function App() {
         saveData = (data as Xmb).filter(item => item.translate !== null)
       }
 
-      const jsonString = JSON.stringify(saveData, null, 2);
+      const jsonString = JSON.stringify(saveData, null, 2).replace(/\n/g, "\r\n");
 
-      const blob = new Blob([jsonString], { type: 'application/json' });
+      const buffer = new ArrayBuffer(2 + jsonString.length * 2);
+      const bufferView = new Uint16Array(buffer);
+
+      bufferView[0] = 0xFEFF;
+
+      for (let i = 0; i < jsonString.length; i++) {
+        bufferView[i + 1] = jsonString.charCodeAt(i);
+      }
+
+      const blob = new Blob([bufferView], { type: 'application/json;charset=utf-16le' });
 
       const url = URL.createObjectURL(blob);
 

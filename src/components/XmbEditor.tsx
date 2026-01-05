@@ -29,23 +29,19 @@ const splitStringByLength = (str: string, len: number) => {
 interface XmbRowProps {
   item: XmbItem;
   displayIndex: number;
+  enableCharacterCheck: boolean;
   onTextChange: (value: string, offset: number) => void;
   onAdd: (offset: number) => void;
   onRemove: (offset: number) => void;
   onAutoFormat: (offset: number) => void;
 }
 
-const XmbRow = memo(({ item, displayIndex, onTextChange, onAdd, onRemove, onAutoFormat }: XmbRowProps) => {
+const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, onAdd, onRemove, onAutoFormat }: XmbRowProps) => {
   const { _text, translate, _offset, _size } = item
 
   const translationText = translate || ''
   const isByteLengthValid = useMemo(() => checkByteLength(translationText, _size), [translationText, _size])
-  const invalidChars = useMemo(() => checkCharacters(translationText), [translationText])
-
-  const statusColorClass = useMemo(() => {
-    if (!isByteLengthValid || invalidChars.length > 0) return 'bg-red-100'
-    return 'bg-green-100'
-  }, [isByteLengthValid, invalidChars])
+  const invalidChars = useMemo(() => enableCharacterCheck ? checkCharacters(translationText) : [], [enableCharacterCheck, translationText])
 
   return (
     <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-2">
@@ -63,7 +59,7 @@ const XmbRow = memo(({ item, displayIndex, onTextChange, onAdd, onRemove, onAuto
       ) : (
         <div className="space-y-1">
           <span className="flex gap-1 flex-wrap">
-            <span className={`text-sm font-light px-2 rounded ${statusColorClass}`}>
+            <span className={`text-sm font-light px-2 rounded ${!isByteLengthValid || invalidChars.length > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
               译文 {displayIndex}
             </span>
 
@@ -96,7 +92,7 @@ const XmbRow = memo(({ item, displayIndex, onTextChange, onAdd, onRemove, onAuto
 
 XmbRow.displayName = 'XmbRow'
 
-const XmbEditor = ({ data, setData }: { data: Xmb, setData: React.Dispatch<React.SetStateAction<Xmb>> }) => {
+const XmbEditor = ({ data, enableCharacterCheck, setData }: { data: Xmb, enableCharacterCheck: boolean, setData: React.Dispatch<React.SetStateAction<Xmb>> }) => {
   const ITEMS_PER_PAGE = 40
   const [currentPage, setCurrentPage] = useState(1)
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE)
@@ -168,6 +164,7 @@ const XmbEditor = ({ data, setData }: { data: Xmb, setData: React.Dispatch<React
             key={xmbItem._offset}
             item={xmbItem}
             displayIndex={startIndex + index + 1}
+            enableCharacterCheck={enableCharacterCheck}
             onTextChange={handleTextChange}
             onAdd={handleClickAdd}
             onRemove={handleClickRemove}

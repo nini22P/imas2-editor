@@ -30,11 +30,12 @@ interface DialogRowProps {
   translation: string;
   globalIndex: number;
   displayIndex: number;
+  enableCharacterCheck: boolean;
   onTranslateChange: (value: string, index: number) => void;
 }
 
-const DialogRow = memo(({ original, translation, globalIndex, displayIndex, onTranslateChange }: DialogRowProps) => {
-  const checkResult = useMemo(() => checkCharacters(translation), [translation])
+const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enableCharacterCheck, onTranslateChange }: DialogRowProps) => {
+  const invalidChars = useMemo(() => enableCharacterCheck ? checkCharacters(translation) : [], [enableCharacterCheck, translation])
   const exceededCount = useMemo(() => getLongestLineExceededCountConcise(translation, 26), [translation])
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -58,14 +59,13 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, onTr
       <div className="space-y-1">
         <span className="flex gap-1 flex-wrap">
           <span
-            className={`text-sm font-light px-2 rounded ${checkResult.length > 0 ? 'bg-red-100' : 'bg-green-100'
-              }`}
+            className={`text-sm font-light px-2 rounded ${invalidChars.length > 0 || exceededCount > 0 ? 'bg-red-100' : 'bg-green-100'}`}
           >
             译文 {displayIndex}
           </span>
-          {checkResult.length > 0 && (
+          {invalidChars.length > 0 && (
             <span className='text-sm font-light px-2 rounded bg-red-300'>
-              {checkResult.join('')}
+              {invalidChars.join('')}
             </span>
           )}
           {exceededCount > 0 && (
@@ -93,7 +93,7 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, onTr
 
 DialogRow.displayName = 'DialogRow'
 
-const DialogEditor = ({ data, setData }: { data: Dialog, setData: React.Dispatch<React.SetStateAction<Dialog>> }) => {
+const DialogEditor = ({ data, enableCharacterCheck, setData }: { data: Dialog, enableCharacterCheck: boolean, setData: React.Dispatch<React.SetStateAction<Dialog>> }) => {
   const ITEMS_PER_PAGE = 50
   const [currentPage, setCurrentPage] = useState(1)
   const totalPages = Math.ceil(data.strings.length / ITEMS_PER_PAGE)
@@ -127,6 +127,7 @@ const DialogEditor = ({ data, setData }: { data: Dialog, setData: React.Dispatch
               globalIndex={globalIndex}
               displayIndex={globalIndex + 1}
               original={originalText}
+              enableCharacterCheck={enableCharacterCheck}
               translation={currentItemsTranslate[index]}
               onTranslateChange={handleTextChange}
             />

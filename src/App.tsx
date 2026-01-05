@@ -37,6 +37,8 @@ export default function App() {
   const [sidebarVisible, setSidebarVisible] = useState<boolean | null>(false)
   const mainRef = useRef<HTMLDivElement>(null)
 
+  const [enableCharacterCheck, setEnableCharacterCheck] = useState<boolean | null>(false)
+
   useLocalStorage('fileName', fileName, setFileName)
   useLocalStorage('type', type, setType)
   useLocalStorage('data', data, setData)
@@ -44,6 +46,7 @@ export default function App() {
   useLocalStorage('directoryHandle', directoryHandle, setDirectoryHandle, { useIndexedDB: true })
   useLocalStorage('currentFileHandle', currentFileHandle, setCurrentFileHandle, { useIndexedDB: true })
   useLocalStorage('currentFilePath', currentFilePath, setCurrentFilePath)
+  useLocalStorage('enableCharacterCheck', enableCharacterCheck, setEnableCharacterCheck)
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -242,6 +245,7 @@ export default function App() {
                   <DialogEditor
                     key={currentFilePath || 'dialog'}
                     data={data as Dialog}
+                    enableCharacterCheck={enableCharacterCheck || false}
                     setData={setData as React.Dispatch<React.SetStateAction<Dialog>>}
                   />
                 }
@@ -250,6 +254,7 @@ export default function App() {
                   <XmbEditor
                     key={currentFilePath || 'xmb'}
                     data={data as Xmb}
+                    enableCharacterCheck={enableCharacterCheck || false}
                     setData={setData as React.Dispatch<React.SetStateAction<Xmb>>}
                   />
                 }

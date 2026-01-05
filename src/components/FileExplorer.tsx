@@ -1,4 +1,4 @@
-import { useState, useCallback, memo, useEffect } from 'react'
+import { useState, useCallback, memo, useEffect, useRef } from 'react'
 import useSWR from 'swr'
 import useLocalStorage from '../hooks/useLocalStorage'
 
@@ -102,8 +102,11 @@ const FileExplorer = ({
 
   const expandedPaths = new Set(expandedPathsArray || [])
 
+  const lastFilePathRef = useRef<string | null>(null)
+
   useEffect(() => {
-    if (currentFilePath && expandedPathsArray !== null) {
+    if (currentFilePath && currentFilePath !== lastFilePathRef.current && expandedPathsArray !== null) {
+      lastFilePathRef.current = currentFilePath
       const parts = currentFilePath.split('/')
       const newPaths = [...(expandedPathsArray || [])]
       let changed = false

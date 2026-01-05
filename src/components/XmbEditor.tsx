@@ -1,30 +1,30 @@
-import TextareaAutosize from 'react-textarea-autosize';
-import { useState, useMemo, memo } from 'react';
-import PageChanger from './PageChanger';
-import type { Xmb, XmbItem } from '../App';
-import checkCharacters from '../utils/checkCharacters';
+import TextareaAutosize from 'react-textarea-autosize'
+import { useState, useMemo, memo } from 'react'
+import PageChanger from './PageChanger'
+import type { Xmb, XmbItem } from '../App'
+import checkCharacters from '../utils/checkCharacters'
 
 const getUTF16BEByteLength = (str: string) => {
-  let byteLength = 0;
+  let byteLength = 0
   for (let i = 0; i < str.length; i++) {
-    const code = str.charCodeAt(i);
+    const code = str.charCodeAt(i)
     // 判断是否为代理对高位 (surrogate high)
     if (code >= 0xD800 && code <= 0xDBFF) {
-      byteLength += 4; // 代理对占4字节
-      i++;
+      byteLength += 4 // 代理对占4字节
+      i++
     } else {
-      byteLength += 2; // 非代理对字符占2字节
+      byteLength += 2 // 非代理对字符占2字节
     }
   }
-  return byteLength;
-};
+  return byteLength
+}
 
-const checkByteLength = (str: string, maxLength: number) => (getUTF16BEByteLength(str) <= maxLength);
+const checkByteLength = (str: string, maxLength: number) => (getUTF16BEByteLength(str) <= maxLength)
 
 const splitStringByLength = (str: string, len: number) => {
-  const regex = new RegExp(`.{1,${len}}`, 'g');
-  return str.match(regex) || [];
-};
+  const regex = new RegExp(`.{1,${len}}`, 'g')
+  return str.match(regex) || []
+}
 
 interface XmbRowProps {
   item: XmbItem;
@@ -36,16 +36,16 @@ interface XmbRowProps {
 }
 
 const XmbRow = memo(({ item, displayIndex, onTextChange, onAdd, onRemove, onAutoFormat }: XmbRowProps) => {
-  const { _text, translate, _offset, _size } = item;
+  const { _text, translate, _offset, _size } = item
 
-  const translationText = translate || '';
-  const isByteLengthValid = useMemo(() => checkByteLength(translationText, _size), [translationText, _size]);
-  const invalidChars = useMemo(() => checkCharacters(translationText), [translationText]);
+  const translationText = translate || ''
+  const isByteLengthValid = useMemo(() => checkByteLength(translationText, _size), [translationText, _size])
+  const invalidChars = useMemo(() => checkCharacters(translationText), [translationText])
 
   const statusColorClass = useMemo(() => {
-    if (!isByteLengthValid || invalidChars.length > 0) return "bg-red-100";
-    return "bg-green-100";
-  }, [isByteLengthValid, invalidChars]);
+    if (!isByteLengthValid || invalidChars.length > 0) return 'bg-red-100'
+    return 'bg-green-100'
+  }, [isByteLengthValid, invalidChars])
 
   return (
     <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-2">
@@ -91,74 +91,74 @@ const XmbRow = memo(({ item, displayIndex, onTextChange, onAdd, onRemove, onAuto
         </div>
       )}
     </div>
-  );
-});
+  )
+})
 
-XmbRow.displayName = 'XmbRow';
+XmbRow.displayName = 'XmbRow'
 
 const XmbEditor = ({ data, setData }: { data: Xmb, setData: React.Dispatch<React.SetStateAction<Xmb>> }) => {
-  const ITEMS_PER_PAGE = 40;
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const ITEMS_PER_PAGE = 40
+  const [currentPage, setCurrentPage] = useState(1)
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
 
   const currentItems = useMemo(() =>
     data.slice(startIndex, startIndex + ITEMS_PER_PAGE),
     [data, startIndex]
-  );
+  )
 
-  const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber);
+  const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber)
 
   const handleTextChange = (value: string, offset: number) => {
     setData(prevData => {
-      const index = prevData.findIndex(item => item._offset === offset);
-      if (index === -1) return prevData;
+      const index = prevData.findIndex(item => item._offset === offset)
+      if (index === -1) return prevData
 
-      const newData = [...prevData];
-      newData[index] = { ...newData[index], translate: value };
-      return newData;
-    });
-  };
+      const newData = [...prevData]
+      newData[index] = { ...newData[index], translate: value }
+      return newData
+    })
+  }
 
   const handleClickRemove = (offset: number) => {
     setData(prevData => {
-      const index = prevData.findIndex(item => item._offset === offset);
-      if (index === -1) return prevData;
+      const index = prevData.findIndex(item => item._offset === offset)
+      if (index === -1) return prevData
 
-      const newData = [...prevData];
-      newData[index] = { ...newData[index], translate: null };
-      return newData;
-    });
-  };
+      const newData = [...prevData]
+      newData[index] = { ...newData[index], translate: null }
+      return newData
+    })
+  }
 
   const handleClickAdd = (offset: number) => {
     setData(prevData => {
-      const index = prevData.findIndex(item => item._offset === offset);
-      if (index === -1) return prevData;
+      const index = prevData.findIndex(item => item._offset === offset)
+      if (index === -1) return prevData
 
-      const newData = [...prevData];
-      newData[index] = { ...newData[index], translate: newData[index]._text };
-      return newData;
-    });
-  };
+      const newData = [...prevData]
+      newData[index] = { ...newData[index], translate: newData[index]._text }
+      return newData
+    })
+  }
 
   const handleClickAutoFormat = (offset: number) => {
     setData(prevData => {
-      const index = prevData.findIndex(item => item._offset === offset);
-      if (index === -1) return prevData;
+      const index = prevData.findIndex(item => item._offset === offset)
+      if (index === -1) return prevData
 
-      const newData = [...prevData];
-      const currentText = newData[index].translate;
+      const newData = [...prevData]
+      const currentText = newData[index].translate
 
       if (currentText) {
         const newText = currentText.split('\n')
           .map(line => splitStringByLength(line, 14).join('\n'))
-          .join('\n');
-        newData[index] = { ...newData[index], translate: newText };
+          .join('\n')
+        newData[index] = { ...newData[index], translate: newText }
       }
-      return newData;
-    });
-  };
+      return newData
+    })
+  }
 
   return (
     <>
@@ -181,7 +181,7 @@ const XmbEditor = ({ data, setData }: { data: Xmb, setData: React.Dispatch<React
         handlePageChange={handlePageChange}
       />
     </>
-  );
+  )
 }
 
-export default XmbEditor;
+export default XmbEditor

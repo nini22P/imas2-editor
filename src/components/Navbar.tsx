@@ -1,34 +1,43 @@
-import { useRef } from "react";
-import type { Dialog, Xmb } from "../App";
+import type { Dialog, Xmb } from '../App'
 
-const Navbar = ({ fileName, data, handleFileChange, savetranslateJson }
-  : {
-    fileName: string | null,
-    data: Dialog | Xmb | null,
-    handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
-    savetranslateJson: () => void,
-  }) => {
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const handleOpenClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const filename = (data as Dialog)?.filename;
+const Navbar = ({
+  fileName,
+  data,
+  onOpenFile,
+  savetranslateJson,
+  onOpenFolder,
+  onToggleSidebar,
+  sidebarVisible
+}: {
+  fileName: string | null,
+  data: Dialog | Xmb | null,
+  onOpenFile: () => void | Promise<void>,
+  savetranslateJson: () => void | Promise<void>,
+  onOpenFolder: () => void | Promise<void>,
+  onToggleSidebar: () => void,
+  sidebarVisible: boolean
+}) => {
+  const internalFilename = (data as Dialog)?.filename
 
   return (
-    <div className="w-full h-12 px-4 shadow flex justify-between items-center fixed top-0 bg-white">
-      <h1>iM@S2 EDITOR</h1>
-      <p className="text-gray-600 text-sm text-center">
-        {fileName}
-        {filename && <span className="text-black"> / </span>}
-        {filename && `${filename}`}
+    <div className="w-full h-10 px-4 shadow flex justify-between items-center fixed top-0 bg-white z-50">
+      <div className="flex items-center gap-4">
+        <h1 className="tracking-tight text-slate-800">iM@S2 EDITOR</h1>
+      </div>
+
+      <p className="text-gray-600 text-sm font-medium truncate max-w-2xl px-4">
+        {fileName || '未选择文件'}
+        {internalFilename && <span className="text-slate-300 mx-2">|</span>}
+        {internalFilename && <span className="text-slate-400 font-normal">{internalFilename}</span>}
       </p>
+
       <div className="flex gap-2">
-        <input accept=".json" type="file" title="打开文件" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
-        <button onClick={handleOpenClick}>打开</button>
+        <button onClick={onOpenFile}>打开文件</button>
+        <button onClick={onOpenFolder}>打开文件夹</button>
         <button onClick={savetranslateJson}>保存</button>
+        <button onClick={onToggleSidebar}>
+          {sidebarVisible ? '关闭侧栏' : '打开侧栏'}
+        </button>
       </div>
     </div>
   )

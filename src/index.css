@@ -11,6 +11,12 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -18,5 +24,81 @@ body {
 }
 
 button {
-  @apply text-sm text-nowrap px-2 rounded shadow-sm cursor-pointer bg-gray-50 hover:bg-gray-100;
+  @apply text-sm text-nowrap px-2 rounded shadow-sm cursor-pointer;
+}
+
+/* Sidebar and Layout */
+.sidebar {
+  @apply h-full border-l border-gray-200 bg-slate-50 relative flex flex-col shrink-0 overflow-hidden transition-all duration-75;
+}
+
+.sidebar-content {
+  @apply flex-1 overflow-y-auto overflow-x-hidden;
+}
+
+.sidebar-resizer-left {
+  @apply absolute top-0 left-0 w-1 h-full cursor-col-resize hover:bg-blue-400 hover:w-1.5 transition-all z-10 bg-transparent;
+}
+
+.file-explorer {
+  @apply flex flex-col h-full bg-white select-none;
+}
+
+.file-explorer-header {
+  @apply flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-white sticky top-0 z-10;
+}
+
+.folder-name {
+  @apply text-[11px] font-bold text-slate-400 uppercase tracking-widest truncate mr-2;
+}
+
+.file-tree {
+  @apply py-1;
+}
+
+.file-tree-item {
+  @apply flex items-center py-1 px-2 cursor-pointer text-[13px] text-slate-600 hover:bg-slate-50 transition-colors border-l-2 border-transparent;
+}
+
+.file-tree-item.selected {
+  @apply bg-blue-50 text-blue-600 border-blue-400 font-medium;
+}
+
+.folder-indicator {
+  @apply flex items-center justify-center w-4 h-4 mr-1 text-slate-400 transition-transform duration-200;
+}
+
+.folder-indicator.expanded {
+  @apply transform rotate-90;
+}
+
+.file-spacer {
+  @apply w-5;
+}
+
+.file-name {
+  @apply truncate;
+}
+
+.file-explorer-empty,
+.file-explorer-loading,
+.file-tree-empty {
+  @apply p-8 text-center text-slate-400 text-sm;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-300;
 }

@@ -102,7 +102,9 @@ export default function App() {
   }
 
   const handleOpenFileContent = async (handle: FileSystemFileHandle, path: string) => {
-    const existingIndex = openedFiles.findIndex(f => f.path === path)
+    const safeOpenedFiles = openedFiles || []
+
+    const existingIndex = safeOpenedFiles.findIndex(f => f.path === path)
     if (existingIndex >= 0) {
       setActiveFileIndex(existingIndex)
       return
@@ -113,6 +115,7 @@ export default function App() {
       const file = await handle.getFile()
       const content = await file.text()
       const parsed = parseJsonData(content)
+
       if (parsed) {
         const newFile: OpenedFile = {
           path,
@@ -122,7 +125,7 @@ export default function App() {
           lastSavedData: JSON.stringify(parsed.data),
           fileName: file.name
         }
-        const newList = [...openedFiles, newFile]
+        const newList = [...safeOpenedFiles, newFile]
         setOpenedFiles(newList)
         setActiveFileIndex(newList.length - 1)
       }

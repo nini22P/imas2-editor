@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import _ from 'lodash'
 import useLocalStorage from './hooks/useLocalStorage'
 import Navbar from './components/Navbar'
@@ -35,6 +35,8 @@ export default function App() {
   const [currentFileHandle, setCurrentFileHandle] = useState<FileSystemFileHandle | null>(null)
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null)
   const [sidebarVisible, setSidebarVisible] = useState<boolean | null>(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const lastSavedDataRef = useRef<string>('')
   const mainRef = useRef<HTMLDivElement>(null)
 
   const [enableCharacterCheck, setEnableCharacterCheck] = useState<boolean | null>(false)
@@ -47,6 +49,15 @@ export default function App() {
   useLocalStorage('currentFileHandle', currentFileHandle, setCurrentFileHandle, { useIndexedDB: true })
   useLocalStorage('currentFilePath', currentFilePath, setCurrentFilePath)
   useLocalStorage('enableCharacterCheck', enableCharacterCheck, setEnableCharacterCheck)
+
+  useEffect(() => {
+    if (data) {
+      const currentDataStr = JSON.stringify(data)
+      setIsDirty(currentDataStr !== lastSavedDataRef.current)
+    } else {
+      setIsDirty(false)
+    }
+  }, [data])
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -98,7 +109,21 @@ export default function App() {
     }
   }
 
+  const setInitialData = (jsonString: string) => {
+    lastSavedDataRef.current = JSON.stringify(JSON.parse(jsonString))
+    processJsonData(jsonString)
+    setIsDirty(false)
+  }
+
+  const checkUnsavedChanges = useCallback(() => {
+    if (isDirty) {
+      return window.confirm('当前文件有未保存的修改，切换文件将丢失这些修改。确定要继续吗？')
+    }
+    return true
+  }, [isDirty])
+
   const handleOpenFolder = async () => {
+    if (!checkUnsavedChanges()) return
     try {
       const picker = (window as unknown as { showDirectoryPicker: () => Promise<FileSystemDirectoryHandle> }).showDirectoryPicker
       const handle = await picker()
@@ -110,6 +135,7 @@ export default function App() {
   }
 
   const handleOpenFile = async () => {
+    if (!checkUnsavedChanges()) return
     try {
       const picker = (window as unknown as {
         showOpenFilePicker: (options?: {
@@ -151,7 +177,7 @@ export default function App() {
       setFileName(file.name)
       setCurrentFileHandle(handle)
       setCurrentFilePath(relativePath)
-      processJsonData(content)
+      setInitialData(content)
     } catch (error) {
       if ((error as Error).name === 'AbortError') return
       console.error('打开文件失败:', error)
@@ -159,6 +185,7 @@ export default function App() {
   }
 
   const handleSelectFile = async (handle: FileSystemFileHandle, path: string) => {
+    if (!checkUnsavedChanges()) return
     try {
       if (!await verifyPermission(handle)) {
         return
@@ -168,7 +195,7 @@ export default function App() {
       setFileName(file.name)
       setCurrentFileHandle(handle)
       setCurrentFilePath(path)
-      processJsonData(content)
+      setInitialData(content)
     } catch (error) {
       console.error('读取文件失败:', error)
     }
@@ -200,6 +227,10 @@ export default function App() {
           const writable = await currentFileHandle.createWritable()
           await writable.write(bufferView.buffer as ArrayBuffer)
           await writable.close()
+
+          lastSavedDataRef.current = JSON.stringify(saveData)
+          setIsDirty(false)
+
           const displayPath = directoryHandle && currentFilePath ? `${directoryHandle.name}/${currentFilePath}` : fileName
           alert(`已覆盖本地文件: ${displayPath}`)
         } catch (error) {
@@ -229,6 +260,7 @@ export default function App() {
       <Navbar
         fileName={fullDisplayPath}
         data={data}
+        isDirty={isDirty}
         onOpenFile={handleOpenFile}
         savetranslateJson={savetranslateJson}
         onOpenFolder={handleOpenFolder}

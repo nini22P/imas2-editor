@@ -7,7 +7,8 @@ const Navbar = ({
   savetranslateJson,
   onOpenFolder,
   onToggleSidebar,
-  sidebarVisible
+  sidebarVisible,
+  isDirty
 }: {
   fileName: string | null,
   data: Dialog | Xmb | null,
@@ -15,7 +16,8 @@ const Navbar = ({
   savetranslateJson: () => void | Promise<void>,
   onOpenFolder: () => void | Promise<void>,
   onToggleSidebar: () => void,
-  sidebarVisible: boolean
+  sidebarVisible: boolean,
+  isDirty?: boolean
 }) => {
   const internalFilename = (data as Dialog)?.filename
 
@@ -26,6 +28,7 @@ const Navbar = ({
       </div>
 
       <p className="text-gray-600 text-sm font-medium truncate max-w-2xl px-2">
+        {isDirty && <span className="text-amber-500 mr-1" title="有未保存的更改">●</span>}
         {fileName || '未选择文件'}
         {internalFilename && <span className="text-slate-300 mx-2">|</span>}
         {internalFilename && <span className="text-slate-400 font-normal">{internalFilename}</span>}

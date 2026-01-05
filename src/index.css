@@ -24,7 +24,7 @@ body {
 }
 
 button {
-  @apply text-sm text-nowrap px-2 rounded shadow-sm cursor-pointer;
+  @apply text-sm text-nowrap px-2 py-0.5 rounded shadow-sm cursor-pointer text-gray-600 hover:bg-slate-50 hover:shadow hover:text-gray-700;
 }
 
 /* Sidebar and Layout */
@@ -45,7 +45,7 @@ button {
 }
 
 .file-explorer-header {
-  @apply flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-white sticky top-0 z-10;
+  @apply flex items-center justify-between px-2 py-2 border-b border-gray-100 bg-white sticky top-0 z-10;
 }
 
 .folder-name {

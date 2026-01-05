@@ -20,12 +20,12 @@ const Navbar = ({
   const internalFilename = (data as Dialog)?.filename
 
   return (
-    <div className="w-full h-10 px-4 shadow flex justify-between items-center fixed top-0 bg-white z-50">
+    <div className="w-full h-10 px-2 shadow flex justify-between items-center fixed top-0 bg-white z-50">
       <div className="flex items-center gap-4">
         <h1 className="tracking-tight text-slate-800">iM@S2 EDITOR</h1>
       </div>
 
-      <p className="text-gray-600 text-sm font-medium truncate max-w-2xl px-4">
+      <p className="text-gray-600 text-sm font-medium truncate max-w-2xl px-2">
         {fileName || '未选择文件'}
         {internalFilename && <span className="text-slate-300 mx-2">|</span>}
         {internalFilename && <span className="text-slate-400 font-normal">{internalFilename}</span>}

@@ -254,7 +254,7 @@ const FileExplorer = ({
         <span className="folder-name truncate font-bold text-sm text-slate-600" title={directoryHandle.name}>
           {directoryHandle.name}
         </span>
-        <div className="flex gap-1 animate-fadeIn">
+        <div className="flex gap-2 animate-fadeIn">
           <button
             onClick={() => mutate()}
             title="刷新文件列表"

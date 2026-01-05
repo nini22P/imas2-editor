@@ -96,24 +96,32 @@ DialogRow.displayName = 'DialogRow'
 const DialogEditor = ({ data, enableCharacterCheck, setData }: { data: Dialog, enableCharacterCheck: boolean, setData: React.Dispatch<React.SetStateAction<Dialog>> }) => {
   const ITEMS_PER_PAGE = 50
   const [currentPage, setCurrentPage] = useState(1)
-  const totalPages = Math.ceil(data.strings.length / ITEMS_PER_PAGE)
+
+  const totalPages = Math.ceil((data?.strings?.length || 0) / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
 
   const currentItemsOriginal = useMemo(() =>
-    data.strings.slice(startIndex, startIndex + ITEMS_PER_PAGE),
-    [data.strings, startIndex])
+    data?.strings?.slice(startIndex, startIndex + ITEMS_PER_PAGE) || [],
+    [data?.strings, startIndex])
 
   const currentItemsTranslate = useMemo(() =>
-    data.translate.slice(startIndex, startIndex + ITEMS_PER_PAGE),
-    [data.translate, startIndex])
+    data?.translate?.slice(startIndex, startIndex + ITEMS_PER_PAGE) || [],
+    [data?.translate, startIndex])
 
   const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber)
 
   const handleTextChange = (value: string, index: number) => {
-    setData(prevData => ({
-      ...prevData,
-      translate: prevData.translate.map((item, i) => i === index ? value : item)
-    }))
+    setData(prevData => {
+      if (!prevData || !prevData.translate) return prevData
+      return {
+        ...prevData,
+        translate: prevData.translate.map((item, i) => i === index ? value : item)
+      }
+    })
+  }
+
+  if (!data || !data.strings || !data.translate) {
+    return <div className="p-4 text-center text-gray-400">数据加载中或格式错误...</div>
   }
 
   return (

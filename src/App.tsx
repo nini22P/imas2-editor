@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import _ from 'lodash'
 import useLocalStorage from './hooks/useLocalStorage'
 import Navbar from './components/Navbar'
+import FileTabs from './components/FileTabs'
 import DialogEditor from './components/DialogEditor'
 import XmbEditor from './components/XmbEditor'
 import Sidebar from './components/Sidebar'
@@ -25,43 +26,37 @@ export interface XmbItem {
 
 export type Xmb = XmbItem[];
 
+export interface OpenedFile {
+  path: string;
+  handle: FileSystemFileHandle;
+  data: Dialog | Xmb;
+  type: Type;
+  lastSavedData: string;
+  fileName: string;
+}
+
 export default function App() {
 
-  const [fileName, setFileName] = useState<string | null>(null)
-  const [type, setType] = useState<Type | null>(null)
-  const [data, setData] = useState<Dialog | Xmb | null>(null)
+  const [openedFiles, setOpenedFiles] = useState<OpenedFile[]>([])
+  const [activeFileIndex, setActiveFileIndex] = useState<number>(-1)
 
   const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null)
-  const [currentFileHandle, setCurrentFileHandle] = useState<FileSystemFileHandle | null>(null)
-  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null)
   const [sidebarVisible, setSidebarVisible] = useState<boolean | null>(false)
-  const [isDirty, setIsDirty] = useState(false)
-  const lastSavedDataRef = useRef<string>('')
   const mainRef = useRef<HTMLDivElement>(null)
 
   const [enableCharacterCheck, setEnableCharacterCheck] = useState<boolean | null>(false)
 
-  useLocalStorage('fileName', fileName, setFileName)
-  useLocalStorage('type', type, setType)
-  useLocalStorage('data', data, setData)
+  useLocalStorage('openedFiles', openedFiles, setOpenedFiles as unknown as React.Dispatch<React.SetStateAction<OpenedFile[] | null>>, { useIndexedDB: true })
+  useLocalStorage('activeFileIndex', activeFileIndex, setActiveFileIndex as unknown as React.Dispatch<React.SetStateAction<number | null>>)
   useLocalStorage('sidebarVisible', sidebarVisible, setSidebarVisible)
   useLocalStorage('directoryHandle', directoryHandle, setDirectoryHandle, { useIndexedDB: true })
-  useLocalStorage('currentFileHandle', currentFileHandle, setCurrentFileHandle, { useIndexedDB: true })
-  useLocalStorage('currentFilePath', currentFilePath, setCurrentFilePath)
   useLocalStorage('enableCharacterCheck', enableCharacterCheck, setEnableCharacterCheck)
 
-  useEffect(() => {
-    if (data) {
-      const currentDataStr = JSON.stringify(data)
-      setIsDirty(currentDataStr !== lastSavedDataRef.current)
-    } else {
-      setIsDirty(false)
-    }
-  }, [data])
+  const activeFile = (activeFileIndex >= 0 && (openedFiles?.length ?? 0) > 0) ? openedFiles[activeFileIndex] : null
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
-  }, [currentFilePath])
+  }, [activeFile?.path])
 
   const verifyPermission = async (handle: FileSystemHandle, readWrite: boolean = false) => {
     const options: { mode?: 'read' | 'readwrite' } = {}
@@ -84,46 +79,83 @@ export default function App() {
     return false
   }
 
-
-  const processJsonData = (jsonString: string) => {
+  const parseJsonData = (jsonString: string): { data: Dialog | Xmb, type: Type } | null => {
     try {
       const data: Dialog | Xmb = JSON.parse(jsonString)
-      console.log('读取 JSON 数据:', data)
       if ('filename' in data && data.filename && 'strings' in data && data.strings) {
-        setType('dialog')
         if (data.translate === undefined) {
           data.translate = data.strings
         }
-        setData(data)
+        return { data, type: 'dialog' }
       } else if (Array.isArray(data) && data.length > 0 && '_offset' in data[0]) {
-        setType('xmb')
         data.forEach((item: XmbItem) => {
           if (item.translate === undefined) {
             item.translate = item._text
           }
         })
-        setData(_.uniqBy(data, '_offset'))
+        return { data: _.uniqBy(data, '_offset'), type: 'xmb' }
       }
     } catch (e) {
       console.error('Process JSON failed:', e)
     }
+    return null
   }
 
-  const setInitialData = (jsonString: string) => {
-    lastSavedDataRef.current = JSON.stringify(JSON.parse(jsonString))
-    processJsonData(jsonString)
-    setIsDirty(false)
-  }
-
-  const checkUnsavedChanges = useCallback(() => {
-    if (isDirty) {
-      return window.confirm('当前文件有未保存的修改，切换文件将丢失这些修改。确定要继续吗？')
+  const handleOpenFileContent = async (handle: FileSystemFileHandle, path: string) => {
+    const existingIndex = openedFiles.findIndex(f => f.path === path)
+    if (existingIndex >= 0) {
+      setActiveFileIndex(existingIndex)
+      return
     }
-    return true
-  }, [isDirty])
+
+    try {
+      if (!await verifyPermission(handle)) return
+      const file = await handle.getFile()
+      const content = await file.text()
+      const parsed = parseJsonData(content)
+      if (parsed) {
+        const newFile: OpenedFile = {
+          path,
+          handle,
+          data: parsed.data,
+          type: parsed.type,
+          lastSavedData: JSON.stringify(parsed.data),
+          fileName: file.name
+        }
+        const newList = [...openedFiles, newFile]
+        setOpenedFiles(newList)
+        setActiveFileIndex(newList.length - 1)
+      }
+    } catch (error) {
+      console.error('打开文件失败:', error)
+    }
+  }
+
+  const handleCloseFile = (index: number) => {
+    const fileToClose = openedFiles[index]
+    const isDirty = JSON.stringify(fileToClose.data) !== fileToClose.lastSavedData
+
+    if (isDirty) {
+      if (!window.confirm(`文件 ${fileToClose.fileName} 有未保存的修改，确定要关闭吗？`)) {
+        return
+      }
+    }
+
+    const newOpenedFiles = openedFiles.filter((_, i) => i !== index)
+    setOpenedFiles(newOpenedFiles)
+
+    if (activeFileIndex === index) {
+      setActiveFileIndex(newOpenedFiles.length > 0 ? Math.max(0, index - 1) : -1)
+    } else if (activeFileIndex > index) {
+      setActiveFileIndex(activeFileIndex - 1)
+    }
+  }
+
+  const handleTabChange = (index: number) => {
+    setActiveFileIndex(index)
+  }
 
   const handleOpenFolder = async () => {
-    if (!checkUnsavedChanges()) return
     try {
       const picker = (window as unknown as { showDirectoryPicker: () => Promise<FileSystemDirectoryHandle> }).showDirectoryPicker
       const handle = await picker()
@@ -135,7 +167,6 @@ export default function App() {
   }
 
   const handleOpenFile = async () => {
-    if (!checkUnsavedChanges()) return
     try {
       const picker = (window as unknown as {
         showOpenFilePicker: (options?: {
@@ -148,36 +179,21 @@ export default function App() {
       }).showOpenFilePicker
 
       const [handle] = await picker({
-        types: [
-          {
-            description: 'JSON Files',
-            accept: { 'application/json': ['.json'] },
-          },
-        ],
+        types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }],
         multiple: false
       })
 
       if (!handle) return
 
-      const file = await handle.getFile()
-      const content = await file.text()
-
-      let relativePath = file.name
+      let relativePath = handle.name
       if (directoryHandle) {
         try {
           const pathParts = await directoryHandle.resolve(handle)
-          if (pathParts) {
-            relativePath = pathParts.join('/')
-          }
-        } catch (e) {
-          console.error('Resolve path failed:', e)
-        }
+          if (pathParts) relativePath = pathParts.join('/')
+        } catch (e) { console.error('Resolve path failed:', e) }
       }
 
-      setFileName(file.name)
-      setCurrentFileHandle(handle)
-      setCurrentFilePath(relativePath)
-      setInitialData(content)
+      await handleOpenFileContent(handle, relativePath)
     } catch (error) {
       if ((error as Error).name === 'AbortError') return
       console.error('打开文件失败:', error)
@@ -185,32 +201,18 @@ export default function App() {
   }
 
   const handleSelectFile = async (handle: FileSystemFileHandle, path: string) => {
-    if (!checkUnsavedChanges()) return
-    try {
-      if (!await verifyPermission(handle)) {
-        return
-      }
-      const file = await handle.getFile()
-      const content = await file.text()
-      setFileName(file.name)
-      setCurrentFileHandle(handle)
-      setCurrentFilePath(path)
-      setInitialData(content)
-    } catch (error) {
-      console.error('读取文件失败:', error)
-    }
+    await handleOpenFileContent(handle, path)
   }
 
   const savetranslateJson = async () => {
-    if (fileName && data && type) {
-      let saveData = data
+    if (activeFile) {
+      let saveData = activeFile.data
 
-      if (type === 'xmb') {
-        saveData = (data as Xmb).filter(item => item.translate !== null)
+      if (activeFile.type === 'xmb') {
+        saveData = (activeFile.data as Xmb).filter(item => item.translate !== null)
       }
 
       const jsonString = JSON.stringify(saveData, null, 2).replace(/\n/g, '\r\n')
-
       const buffer = new ArrayBuffer(2 + jsonString.length * 2)
       const bufferView = new Uint16Array(buffer)
       bufferView[0] = 0xFEFF // BOM
@@ -218,76 +220,100 @@ export default function App() {
         bufferView[i + 1] = jsonString.charCodeAt(i)
       }
 
-      if (currentFileHandle) {
-        try {
-          if (!await verifyPermission(currentFileHandle, true)) {
-            downloadFile(bufferView)
-            return
+      try {
+        let canDirectSave = false
+        if (directoryHandle) {
+          try {
+            const path = await directoryHandle.resolve(activeFile.handle)
+            if (path) canDirectSave = true
+          } catch {
+            console.warn('File not in current directory tree, falling back to download.')
           }
-          const writable = await currentFileHandle.createWritable()
-          await writable.write(bufferView.buffer as ArrayBuffer)
-          await writable.close()
-
-          lastSavedDataRef.current = JSON.stringify(saveData)
-          setIsDirty(false)
-
-          const displayPath = directoryHandle && currentFilePath ? `${directoryHandle.name}/${currentFilePath}` : fileName
-          alert(`已覆盖本地文件: ${displayPath}`)
-        } catch (error) {
-          console.error('文件保存失败:', error)
-          downloadFile(bufferView)
         }
-      } else {
-        downloadFile(bufferView)
+
+        if (!canDirectSave || !await verifyPermission(activeFile.handle, true)) {
+          downloadFile(bufferView, activeFile.fileName)
+          return
+        }
+        const writable = await activeFile.handle.createWritable()
+        await writable.write(bufferView.buffer as ArrayBuffer)
+        await writable.close()
+
+        const updatedFiles = [...openedFiles]
+        updatedFiles[activeFileIndex] = {
+          ...activeFile,
+          lastSavedData: JSON.stringify(activeFile.data)
+        }
+        setOpenedFiles(updatedFiles)
+
+        alert(`已保存: ${activeFile.path}`)
+      } catch (error) {
+        console.error('文件保存失败:', error)
+        downloadFile(bufferView, activeFile.fileName)
       }
     }
   }
 
-  const downloadFile = (bufferView: Uint16Array) => {
+  const downloadFile = (bufferView: Uint16Array, name: string) => {
     const blob = new Blob([bufferView.buffer as ArrayBuffer], { type: 'application/json;charset=utf-16le' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = fileName || 'export.json'
+    a.download = name
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  const fullDisplayPath = (directoryHandle && currentFilePath) ? `${directoryHandle.name}/${currentFilePath}` : fileName
+  const updateActiveFileData = (newDataOrUpdater: Dialog | Xmb | ((prev: Dialog | Xmb) => Dialog | Xmb)) => {
+    if (activeFileIndex >= 0) {
+      setOpenedFiles(prev => prev.map((f, i) => {
+        if (i === activeFileIndex) {
+          const newData = typeof newDataOrUpdater === 'function'
+            ? (newDataOrUpdater as (prev: Dialog | Xmb) => Dialog | Xmb)(f.data)
+            : newDataOrUpdater
+          return { ...f, data: newData }
+        }
+        return f
+      }))
+    }
+  }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-white">
       <Navbar
-        fileName={fullDisplayPath}
-        data={data}
-        isDirty={isDirty}
         onOpenFile={handleOpenFile}
         savetranslateJson={savetranslateJson}
         onOpenFolder={handleOpenFolder}
         onToggleSidebar={() => setSidebarVisible(!sidebarVisible)}
         sidebarVisible={!!sidebarVisible}
       />
-      <div className="flex flex-1 overflow-hidden pt-10">
+      <FileTabs
+        openedFiles={openedFiles}
+        activeFileIndex={activeFileIndex}
+        onTabChange={handleTabChange}
+        onCloseFile={handleCloseFile}
+      />
+      <div className="flex flex-1 overflow-hidden pt-[72px]">
         <main ref={mainRef} className={`flex-1 overflow-auto ${!sidebarVisible ? 'w-full' : ''}`}>
           {
-            data ? (
+            activeFile ? (
               <div className="pt-2 pb-8">
                 {
-                  type === 'dialog' &&
+                  activeFile.type === 'dialog' &&
                   <DialogEditor
-                    key={currentFilePath || 'dialog'}
-                    data={data as Dialog}
+                    key={activeFile.path || 'dialog'}
+                    data={activeFile.data as Dialog}
                     enableCharacterCheck={enableCharacterCheck || false}
-                    setData={setData as React.Dispatch<React.SetStateAction<Dialog>>}
+                    setData={updateActiveFileData as React.Dispatch<React.SetStateAction<Dialog>>}
                   />
                 }
                 {
-                  type === 'xmb' &&
+                  activeFile.type === 'xmb' &&
                   <XmbEditor
-                    key={currentFilePath || 'xmb'}
-                    data={data as Xmb}
+                    key={activeFile.path || 'xmb'}
+                    data={activeFile.data as Xmb}
                     enableCharacterCheck={enableCharacterCheck || false}
-                    setData={setData as React.Dispatch<React.SetStateAction<Xmb>>}
+                    setData={updateActiveFileData as React.Dispatch<React.SetStateAction<Xmb>>}
                   />
                 }
               </div>
@@ -310,7 +336,7 @@ export default function App() {
         <Sidebar visible={!!sidebarVisible}>
           <FileExplorer
             directoryHandle={directoryHandle}
-            currentFilePath={currentFilePath}
+            currentFilePath={activeFile?.path || null}
             onSelectFile={handleSelectFile}
           />
         </Sidebar>

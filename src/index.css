@@ -3,6 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --accent-primary: #e22b30;
+  --accent-hover: #c41e24;
+  --accent-light: #fff5f5;
+
+  --sidebar-bg: #f8fafc;
+  --tab-bg-active: #ffffff;
+  --tab-bg-inactive: #f8fafc;
+  --tab-hover: #f1f5f9;
+
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
 }
 
 body {
@@ -27,9 +40,10 @@ button {
   @apply text-sm text-nowrap px-2 py-0.5 rounded shadow-sm cursor-pointer text-gray-600 hover:bg-slate-50 hover:shadow hover:text-gray-700;
 }
 
-/* Sidebar and Layout */
 .sidebar {
-  @apply h-full border-l border-gray-200 bg-slate-50 relative flex flex-col shrink-0 overflow-hidden transition-all duration-75;
+  @apply h-full border-l relative flex flex-col shrink-0 overflow-hidden transition-all duration-75;
+  border-color: var(--border-color);
+  background-color: var(--sidebar-bg);
 }
 
 .sidebar-content {
@@ -41,7 +55,8 @@ button {
 }
 
 .file-explorer {
-  @apply flex flex-col h-full bg-white select-none;
+  @apply flex flex-col h-full select-none;
+  background-color: var(--background);
 }
 
 .file-explorer-header {
@@ -61,7 +76,10 @@ button {
 }
 
 .file-tree-item.selected {
-  @apply bg-blue-50 text-blue-600 border-blue-400 font-medium;
+  @apply font-medium;
+  background-color: var(--accent-light);
+  color: var(--accent-primary);
+  border-left-color: var(--accent-primary);
 }
 
 .folder-indicator {
@@ -86,9 +104,9 @@ button {
   @apply p-8 text-center text-slate-400 text-sm;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
+  height: 3px;
 }
 
 ::-webkit-scrollbar-track {
@@ -96,9 +114,10 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 rounded;
+  background-color: var(--border-color);
+  @apply rounded;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-300;
+  background-color: var(--text-muted);
 }

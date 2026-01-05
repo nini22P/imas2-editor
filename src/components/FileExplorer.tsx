@@ -57,6 +57,7 @@ const FileTreeItem = memo(({
         style={{ paddingLeft: `${depth * 14 + 8}px` }}
         onClick={handleClick}
         data-selected={isSelected}
+        title={node.path}
       >
         {isDirectory ? (
           <span className={`folder-indicator ${isExpanded ? 'expanded' : ''}`}>

@@ -47,7 +47,7 @@ const FileTabs = ({ openedFiles, activeFileIndex, onTabChange, onCloseFile }: Fi
                         onClick={() => onTabChange(index)}
                     >
                         {isActive && (
-                            <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-indigo-500" style={{ backgroundColor: 'var(--accent-primary)' }} />
+                            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-indigo-500" style={{ backgroundColor: 'var(--accent-primary)' }} />
                         )}
                         {isDirty && (
                             <span className="w-1 h-1 rounded-full shadow-sm" style={{ backgroundColor: 'var(--accent-primary)' }} />

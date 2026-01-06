@@ -44,19 +44,25 @@ const FileTabs = ({ openedFiles, activeFileIndex, onTabChange, onCloseFile }: Fi
         const isDirty = JSON.stringify(file.data) !== file.lastSavedData
         const isActive = activeFileIndex === index
 
+        const handleAuxClick = (e: React.MouseEvent) => {
+          if (e.button === 1) {
+            e.preventDefault()
+            onCloseFile(index)
+          }
+        }
+
         return (
           <div
             id={`file-tab-${file.path}`}
             key={file.path}
-            className={`
-                            group flex items-center gap-1.5 px-2 h-full text-[13px] cursor-pointer transition-all duration-150 relative border-r
-                        `}
+            className={'group flex items-center gap-1.5 px-2 h-full text-[13px] cursor-pointer transition-all duration-150 relative border-r'}
             style={{
               borderColor: 'var(--border-color)',
               backgroundColor: isActive ? 'var(--tab-bg-active)' : 'transparent',
               color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
             }}
             onClick={() => onTabChange(index)}
+            onMouseDown={handleAuxClick}
           >
             {isActive && (
               <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-indigo-500" style={{ backgroundColor: 'var(--accent-primary)' }} />
@@ -64,14 +70,15 @@ const FileTabs = ({ openedFiles, activeFileIndex, onTabChange, onCloseFile }: Fi
             {isDirty && (
               <span className="w-1 h-1 rounded-full shadow-sm" style={{ backgroundColor: 'var(--accent-primary)' }} />
             )}
-            <span className="truncate max-w-[192px]" title={file.path}>
+            <span className="truncate max-w-48" title={file.path}>
               {file.fileName}
             </span>
             <button
+              title='关闭'
               className={`
-                                ml-1 p-1 rounded-full hover:bg-slate-200 transition-colors flex items-center justify-center
-                                ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
-                            `}
+                          ml-1 p-1 rounded-full hover:bg-slate-200 transition-colors flex items-center justify-center
+                          ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+                        `}
               onClick={(e) => {
                 e.stopPropagation()
                 onCloseFile(index)

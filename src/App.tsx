@@ -149,7 +149,6 @@ export default function App() {
       }
       return newFiles
     })
-    mainRef.current?.scrollTo(0, 0)
   }
 
   const fileFetcher = async ([path]: [string]) => {

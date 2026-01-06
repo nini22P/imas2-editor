@@ -1,5 +1,5 @@
 import TextareaAutosize from 'react-textarea-autosize'
-import { useState, useMemo, memo } from 'react'
+import { useMemo, memo } from 'react'
 import PageChanger from './PageChanger'
 import type { Xmb, XmbItem } from '../App'
 import checkCharacters from '../utils/checkCharacters'
@@ -92,9 +92,16 @@ const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, o
 
 XmbRow.displayName = 'XmbRow'
 
-const XmbEditor = ({ data, enableCharacterCheck, setData }: { data: Xmb, enableCharacterCheck: boolean, setData: React.Dispatch<React.SetStateAction<Xmb>> }) => {
+interface XmbEditorProps {
+  data: Xmb;
+  enableCharacterCheck: boolean;
+  setData: React.Dispatch<React.SetStateAction<Xmb>>;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}
+
+const XmbEditor = ({ data, enableCharacterCheck, setData, currentPage, onPageChange }: XmbEditorProps) => {
   const ITEMS_PER_PAGE = 40
-  const [currentPage, setCurrentPage] = useState(1)
 
   const totalPages = Math.ceil((data?.length || 0) / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
@@ -103,8 +110,6 @@ const XmbEditor = ({ data, enableCharacterCheck, setData }: { data: Xmb, enableC
     Array.isArray(data) ? data.slice(startIndex, startIndex + ITEMS_PER_PAGE) : [],
     [data, startIndex]
   )
-
-  const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber)
 
   if (!data || !Array.isArray(data)) {
     return <div className="p-4 text-center text-gray-400">数据加载中或格式错误...</div>
@@ -180,7 +185,7 @@ const XmbEditor = ({ data, enableCharacterCheck, setData }: { data: Xmb, enableC
       <PageChanger
         totalPages={totalPages}
         currentPage={currentPage}
-        handlePageChange={handlePageChange}
+        handlePageChange={onPageChange}
       />
     </>
   )

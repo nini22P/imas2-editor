@@ -49,7 +49,7 @@ const FileTabs = ({ openedFiles, activeFileIndex, onTabChange, onCloseFile }: Fi
             id={`file-tab-${file.path}`}
             key={file.path}
             className={`
-                            group flex items-center gap-1.5 px-3 h-full text-[13px] cursor-pointer transition-all duration-150 relative border-r
+                            group flex items-center gap-1.5 px-2 h-full text-[13px] cursor-pointer transition-all duration-150 relative border-r
                         `}
             style={{
               borderColor: 'var(--border-color)',

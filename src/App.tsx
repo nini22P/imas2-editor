@@ -34,6 +34,10 @@ export interface OpenedFile {
   type: Type;
   lastSavedData: string;
   fileName: string;
+  uiState: {
+    currentPage: number;
+    scrollTop: number;
+  };
 }
 
 const parseJsonData = (jsonString: string): { data: Dialog | Xmb, type: Type } | null => {
@@ -70,7 +74,12 @@ export default function App() {
   const [enableCharacterCheck, setEnableCharacterCheck] = useState<boolean | null>(false)
 
   const openedFilesRef = useRef(openedFiles)
-  useEffect(() => { openedFilesRef.current = openedFiles }, [openedFiles])
+  const activeFileIndexRef = useRef(activeFileIndex)
+
+  useEffect(() => {
+    openedFilesRef.current = openedFiles
+    activeFileIndexRef.current = activeFileIndex
+  }, [openedFiles, activeFileIndex])
 
   useLocalStorage('openedFiles', openedFiles, setOpenedFiles as unknown as React.Dispatch<React.SetStateAction<OpenedFile[] | null>>, { useIndexedDB: true })
   useLocalStorage('activeFileIndex', activeFileIndex, setActiveFileIndex as unknown as React.Dispatch<React.SetStateAction<number | null>>)
@@ -79,6 +88,69 @@ export default function App() {
   useLocalStorage('enableCharacterCheck', enableCharacterCheck, setEnableCharacterCheck)
 
   const activeFile = (activeFileIndex >= 0 && (openedFiles?.length ?? 0) > 0) ? openedFiles[activeFileIndex] : null
+
+  useEffect(() => {
+    if (activeFile && mainRef.current) {
+      requestAnimationFrame(() => {
+        if (mainRef.current) {
+          mainRef.current.scrollTo(0, activeFile.uiState?.scrollTop || 0)
+        }
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFile?.path])
+
+  useEffect(() => {
+    const handleScroll = _.debounce(() => {
+      if (mainRef.current && activeFileIndexRef.current >= 0) {
+        const scrollTop = mainRef.current.scrollTop
+        setOpenedFiles(prev => {
+          const newFiles = [...prev]
+          const index = activeFileIndexRef.current
+          if (newFiles[index]) {
+            newFiles[index] = {
+              ...newFiles[index],
+              uiState: {
+                ...(newFiles[index].uiState || { currentPage: 1, scrollTop: 0 }),
+                scrollTop
+              }
+            }
+          }
+          return newFiles
+        })
+      }
+    }, 300)
+
+    const el = mainRef.current
+    if (el) {
+      el.addEventListener('scroll', handleScroll)
+    }
+
+    return () => {
+      if (el) {
+        el.removeEventListener('scroll', handleScroll)
+      }
+      handleScroll.cancel()
+    }
+  }, [])
+
+  const updateActiveFilePage = (page: number) => {
+    setOpenedFiles(prev => {
+      const newFiles = [...prev]
+      if (newFiles[activeFileIndex]) {
+        newFiles[activeFileIndex] = {
+          ...newFiles[activeFileIndex],
+          uiState: {
+            ...newFiles[activeFileIndex].uiState,
+            currentPage: page,
+            scrollTop: 0,
+          }
+        }
+      }
+      return newFiles
+    })
+    mainRef.current?.scrollTo(0, 0)
+  }
 
   const fileFetcher = async ([path]: [string]) => {
     const file = openedFilesRef.current.find(f => f.path === path)
@@ -128,9 +200,7 @@ export default function App() {
     }
   )
 
-  useEffect(() => {
-    mainRef.current?.scrollTo(0, 0)
-  }, [activeFile?.path])
+
 
   const verifyPermission = async (handle: FileSystemHandle, readWrite: boolean = false) => {
     const options: { mode?: 'read' | 'readwrite' } = {}
@@ -175,7 +245,11 @@ export default function App() {
           data: parsed.data,
           type: parsed.type,
           lastSavedData: JSON.stringify(parsed.data),
-          fileName: file.name
+          fileName: file.name,
+          uiState: {
+            currentPage: 1,
+            scrollTop: 0
+          }
         }
         const newList = [...safeOpenedFiles, newFile]
         setOpenedFiles(newList)
@@ -377,6 +451,8 @@ export default function App() {
                     data={activeFile.data as Dialog}
                     enableCharacterCheck={enableCharacterCheck || false}
                     setData={updateActiveFileData as React.Dispatch<React.SetStateAction<Dialog>>}
+                    currentPage={activeFile.uiState?.currentPage || 1}
+                    onPageChange={updateActiveFilePage}
                   />
                 }
                 {
@@ -386,6 +462,8 @@ export default function App() {
                     data={activeFile.data as Xmb}
                     enableCharacterCheck={enableCharacterCheck || false}
                     setData={updateActiveFileData as React.Dispatch<React.SetStateAction<Xmb>>}
+                    currentPage={activeFile.uiState?.currentPage || 1}
+                    onPageChange={updateActiveFilePage}
                   />
                 }
               </div>

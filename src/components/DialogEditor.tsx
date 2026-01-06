@@ -1,6 +1,6 @@
 import TextareaAutosize from 'react-textarea-autosize'
 import checkCharacters from '../utils/checkCharacters'
-import { useState, memo, useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import PageChanger from './PageChanger'
 import type { Dialog } from '../App'
 
@@ -93,9 +93,16 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enab
 
 DialogRow.displayName = 'DialogRow'
 
-const DialogEditor = ({ data, enableCharacterCheck, setData }: { data: Dialog, enableCharacterCheck: boolean, setData: React.Dispatch<React.SetStateAction<Dialog>> }) => {
+interface DialogEditorProps {
+  data: Dialog;
+  enableCharacterCheck: boolean;
+  setData: React.Dispatch<React.SetStateAction<Dialog>>;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}
+
+const DialogEditor = ({ data, enableCharacterCheck, setData, currentPage, onPageChange }: DialogEditorProps) => {
   const ITEMS_PER_PAGE = 50
-  const [currentPage, setCurrentPage] = useState(1)
 
   const totalPages = Math.ceil((data?.strings?.length || 0) / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
@@ -107,8 +114,6 @@ const DialogEditor = ({ data, enableCharacterCheck, setData }: { data: Dialog, e
   const currentItemsTranslate = useMemo(() =>
     data?.translate?.slice(startIndex, startIndex + ITEMS_PER_PAGE) || [],
     [data?.translate, startIndex])
-
-  const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber)
 
   const handleTextChange = (value: string, index: number) => {
     setData(prevData => {
@@ -145,7 +150,7 @@ const DialogEditor = ({ data, enableCharacterCheck, setData }: { data: Dialog, e
       <PageChanger
         totalPages={totalPages}
         currentPage={currentPage}
-        handlePageChange={handlePageChange}
+        handlePageChange={onPageChange}
       />
     </>
   )

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import _ from 'lodash'
+import useSWR, { mutate } from 'swr'
 import useLocalStorage from './hooks/useLocalStorage'
 import Navbar from './components/Navbar'
 import FileTabs from './components/FileTabs'
@@ -35,6 +36,28 @@ export interface OpenedFile {
   fileName: string;
 }
 
+const parseJsonData = (jsonString: string): { data: Dialog | Xmb, type: Type } | null => {
+  try {
+    const data: Dialog | Xmb = JSON.parse(jsonString)
+    if ('filename' in data && data.filename && 'strings' in data && data.strings) {
+      if (data.translate === undefined) {
+        data.translate = data.strings
+      }
+      return { data, type: 'dialog' }
+    } else if (Array.isArray(data) && data.length > 0 && '_offset' in data[0]) {
+      data.forEach((item: XmbItem) => {
+        if (item.translate === undefined) {
+          item.translate = item._text
+        }
+      })
+      return { data: _.uniqBy(data, '_offset'), type: 'xmb' }
+    }
+  } catch (e) {
+    console.error('Process JSON failed:', e)
+  }
+  return null
+}
+
 export default function App() {
 
   const [openedFiles, setOpenedFiles] = useState<OpenedFile[]>([])
@@ -46,6 +69,9 @@ export default function App() {
 
   const [enableCharacterCheck, setEnableCharacterCheck] = useState<boolean | null>(false)
 
+  const openedFilesRef = useRef(openedFiles)
+  useEffect(() => { openedFilesRef.current = openedFiles }, [openedFiles])
+
   useLocalStorage('openedFiles', openedFiles, setOpenedFiles as unknown as React.Dispatch<React.SetStateAction<OpenedFile[] | null>>, { useIndexedDB: true })
   useLocalStorage('activeFileIndex', activeFileIndex, setActiveFileIndex as unknown as React.Dispatch<React.SetStateAction<number | null>>)
   useLocalStorage('sidebarVisible', sidebarVisible, setSidebarVisible)
@@ -53,6 +79,54 @@ export default function App() {
   useLocalStorage('enableCharacterCheck', enableCharacterCheck, setEnableCharacterCheck)
 
   const activeFile = (activeFileIndex >= 0 && (openedFiles?.length ?? 0) > 0) ? openedFiles[activeFileIndex] : null
+
+  const fileFetcher = async ([path]: [string]) => {
+    const file = openedFilesRef.current.find(f => f.path === path)
+    if (!file) throw new Error('File not found')
+
+    if ((await file.handle.queryPermission({ mode: 'read' })) !== 'granted') {
+      return null
+    }
+
+    const fileDisk = await file.handle.getFile()
+    const content = await fileDisk.text()
+    return parseJsonData(content)
+  }
+
+  useSWR(
+    activeFile ? [activeFile.path] : null,
+    fileFetcher,
+    {
+      onSuccess: (data) => {
+        if (!data) return
+
+        const currentFiles = openedFilesRef.current
+        const currentIndex = activeFileIndex
+        const currentFile = currentFiles[currentIndex]
+
+        if (!currentFile || currentFile.path !== activeFile?.path) return
+
+        const diskDataStr = JSON.stringify(data.data)
+
+        if (diskDataStr !== currentFile.lastSavedData) {
+          const isUserDirty = JSON.stringify(currentFile.data) !== currentFile.lastSavedData
+
+          if (!isUserDirty) {
+            const updatedFiles = [...currentFiles]
+            updatedFiles[currentIndex] = {
+              ...currentFile,
+              data: data.data,
+              lastSavedData: diskDataStr
+            }
+            setOpenedFiles(updatedFiles)
+            console.log(`[AutoSync] 已自动同步 ${currentFile.fileName} 到最新版本`)
+          } else {
+            console.warn(`[AutoSync] 检测到 ${currentFile.fileName} 外部更新，但用户有未保存修改，跳过自动同步。`)
+          }
+        }
+      }
+    }
+  )
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -77,28 +151,6 @@ export default function App() {
     }
 
     return false
-  }
-
-  const parseJsonData = (jsonString: string): { data: Dialog | Xmb, type: Type } | null => {
-    try {
-      const data: Dialog | Xmb = JSON.parse(jsonString)
-      if ('filename' in data && data.filename && 'strings' in data && data.strings) {
-        if (data.translate === undefined) {
-          data.translate = data.strings
-        }
-        return { data, type: 'dialog' }
-      } else if (Array.isArray(data) && data.length > 0 && '_offset' in data[0]) {
-        data.forEach((item: XmbItem) => {
-          if (item.translate === undefined) {
-            item.translate = item._text
-          }
-        })
-        return { data: _.uniqBy(data, '_offset'), type: 'xmb' }
-      }
-    } catch (e) {
-      console.error('Process JSON failed:', e)
-    }
-    return null
   }
 
   const handleOpenFileContent = async (handle: FileSystemFileHandle, path: string) => {
@@ -238,9 +290,26 @@ export default function App() {
           downloadFile(bufferView, activeFile.fileName)
           return
         }
+
+        const fileOnDisk = await activeFile.handle.getFile()
+        const contentOnDisk = await fileOnDisk.text()
+        const parsedOnDisk = parseJsonData(contentOnDisk)
+
+        if (parsedOnDisk && JSON.stringify(parsedOnDisk.data) !== activeFile.lastSavedData) {
+          const confirmOverwrite = window.confirm(
+            `警告：文件 ${activeFile.fileName} 已在外部被修改！\n\n` +
+            '磁盘上的内容与您上次打开/保存时的版本不一致。\n' +
+            '如果继续保存，将覆盖外部的更改。\n\n' +
+            '确定要覆盖吗？'
+          )
+          if (!confirmOverwrite) return
+        }
+
         const writable = await activeFile.handle.createWritable()
         await writable.write(bufferView.buffer as ArrayBuffer)
         await writable.close()
+
+        mutate([activeFile.path], { data: activeFile.data, type: activeFile.type }, false)
 
         const updatedFiles = [...openedFiles]
         updatedFiles[activeFileIndex] = {

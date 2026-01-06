@@ -196,7 +196,7 @@ const FileExplorer = ({
         if (selectedElement) {
           selectedElement.scrollIntoView({
             block: 'nearest',
-            behavior: 'smooth'
+            behavior: 'auto'
           })
         }
       })

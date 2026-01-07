@@ -45,21 +45,24 @@ const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, o
 
   return (
     <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-2">
-      <div className="space-y-1">
-        <span className="text-sm font-light bg-cyan-100 px-2 rounded">原文 {displayIndex}</span>
+      <div className="space-y-0">
+        <span className="flex gap-1 flex-wrap">
+          <span className="text-sm font-light bg-cyan-100 px-2 rounded-t">原文 {displayIndex}</span>
+        </span>
         <TextareaAutosize
           value={_text}
           disabled
           readOnly
-          className="w-full bg-stone-100 p-1 rounded resize-none"
+          spellCheck={false}
+          className="w-full bg-stone-100 p-1 rounded-b rounded-tr resize-none"
         />
       </div>
       {translate == null ? (
         <button onClick={() => onAdd(_offset)}>添加</button>
       ) : (
-        <div className="space-y-1">
-          <span className="flex gap-1 flex-wrap">
-            <span className={`text-sm font-light px-2 rounded ${!isByteLengthValid || invalidChars.length > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
+        <div className="space-y-0">
+          <span className="flex gap-0.25 flex-wrap">
+            <span className={`text-sm font-light px-2 rounded-t ${!isByteLengthValid || invalidChars.length > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
               译文 {displayIndex}
             </span>
 
@@ -76,13 +79,14 @@ const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, o
             )}
 
             <span className='flex-1'></span>
-            <button onClick={() => onAutoFormat(_offset)} className='text-xs px-1'>邮件自动排版</button>
-            <button onClick={() => onRemove(_offset)} className='text-xs px-1'>删除</button>
+            <button onClick={() => onAutoFormat(_offset)} className='text-xs !py-0 !rounded-none !rounded-tl'>邮件自动排版</button>
+            <button onClick={() => onRemove(_offset)} className='text-xs !py-0 !rounded-none !rounded-tr border-l-0'>删除</button>
           </span>
           <TextareaAutosize
             value={translationText}
+            spellCheck={false}
             onChange={(e) => onTextChange(e.target.value, _offset)}
-            className="w-full bg-slate-100 p-1 rounded resize-none shadow-inner-sm"
+            className="w-full bg-slate-100 p-1 rounded-b resize-none shadow-inner-sm"
           />
         </div>
       )}

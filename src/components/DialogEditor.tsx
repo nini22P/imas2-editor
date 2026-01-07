@@ -44,22 +44,24 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enab
 
   return (
     <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-2">
-      <div className="space-y-1">
-        <span className="text-sm font-light px-2 rounded bg-cyan-100">
-          原文 {displayIndex}
+      <div className="space-y-0">
+        <span className="flex gap-1 flex-wrap">
+          <span className="text-sm font-light px-2 rounded-t bg-cyan-100">
+            原文 {displayIndex}
+          </span>
         </span>
         <TextareaAutosize
           value={original}
           disabled
           readOnly
           spellCheck={false}
-          className="w-full bg-stone-100 p-1 rounded resize-none"
+          className="w-full bg-stone-100 p-1 rounded-b rounded-tr resize-none"
         />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-0">
         <span className="flex gap-1 flex-wrap">
           <span
-            className={`text-sm font-light px-2 rounded ${invalidChars.length > 0 || exceededCount > 0 ? 'bg-red-100' : 'bg-green-100'}`}
+            className={`text-sm font-light px-2 rounded-t ${invalidChars.length > 0 || exceededCount > 0 ? 'bg-red-100' : 'bg-green-100'}`}
           >
             译文 {displayIndex}
           </span>
@@ -78,7 +80,7 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enab
           value={translation}
           onChange={handleChange}
           spellCheck={false}
-          className="w-full bg-slate-100 p-1 rounded resize-none shadow-inner-sm"
+          className="w-full bg-slate-100 p-1 rounded-b rounded-tr resize-none shadow-inner-sm"
         />
       </div>
     </div>

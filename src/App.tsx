@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import _ from 'lodash'
 import useSWR, { mutate } from 'swr'
-import useLocalStorage from './hooks/useLocalStorage'
+import useLocalState from './hooks/useLocalState'
 import Navbar from './components/Navbar'
 import FileTabs from './components/FileTabs'
 import DialogEditor from './components/DialogEditor'
@@ -62,16 +62,21 @@ const parseJsonData = (jsonString: string): { data: Dialog | Xmb, type: Type } |
   return null
 }
 
+const indexedDBOptions = {
+  useIndexedDB: true,
+  dbName: 'imas2-editor-db',
+  storeName: 'handles'
+}
+
 export default function App() {
 
-  const [openedFiles, setOpenedFiles] = useState<OpenedFile[]>([])
-  const [activeFileIndex, setActiveFileIndex] = useState<number>(-1)
+  const [openedFiles, setOpenedFiles] = useLocalState<OpenedFile[]>('openedFiles', [], indexedDBOptions)
+  const [activeFileIndex, setActiveFileIndex] = useLocalState<number>('activeFileIndex', -1)
+  const [directoryHandle, setDirectoryHandle] = useLocalState<FileSystemDirectoryHandle | null>('directoryHandle', null, indexedDBOptions)
+  const [sidebarVisible, setSidebarVisible] = useLocalState<boolean>('sidebarVisible', false)
+  const [enableCharacterCheck] = useLocalState<boolean>('enableCharacterCheck', false)
 
-  const [directoryHandle, setDirectoryHandle] = useState<FileSystemDirectoryHandle | null>(null)
-  const [sidebarVisible, setSidebarVisible] = useState<boolean | null>(false)
   const mainRef = useRef<HTMLDivElement>(null)
-
-  const [enableCharacterCheck, setEnableCharacterCheck] = useState<boolean | null>(false)
 
   const openedFilesRef = useRef(openedFiles)
   const activeFileIndexRef = useRef(activeFileIndex)
@@ -81,11 +86,6 @@ export default function App() {
     activeFileIndexRef.current = activeFileIndex
   }, [openedFiles, activeFileIndex])
 
-  useLocalStorage('openedFiles', openedFiles, setOpenedFiles as unknown as React.Dispatch<React.SetStateAction<OpenedFile[] | null>>, { useIndexedDB: true })
-  useLocalStorage('activeFileIndex', activeFileIndex, setActiveFileIndex as unknown as React.Dispatch<React.SetStateAction<number | null>>)
-  useLocalStorage('sidebarVisible', sidebarVisible, setSidebarVisible)
-  useLocalStorage('directoryHandle', directoryHandle, setDirectoryHandle, { useIndexedDB: true })
-  useLocalStorage('enableCharacterCheck', enableCharacterCheck, setEnableCharacterCheck)
 
   const activeFile = (activeFileIndex >= 0 && (openedFiles?.length ?? 0) > 0) ? openedFiles[activeFileIndex] : null
 
@@ -132,7 +132,7 @@ export default function App() {
       }
       handleScroll.cancel()
     }
-  }, [])
+  }, [setOpenedFiles])
 
   const updateActiveFilePage = (page: number) => {
     setOpenedFiles(prev => {

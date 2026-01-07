@@ -55,7 +55,7 @@ const FileTabs = ({ openedFiles, activeFileIndex, onTabChange, onCloseFile }: Fi
           <div
             id={`file-tab-${file.path}`}
             key={file.path}
-            className={'group flex items-center gap-1.5 px-2 h-full text-[13px] cursor-pointer transition-all duration-150 relative border-r'}
+            className={'group flex items-center gap-1 p-1 pl-2 h-full text-[13px] cursor-pointer transition-all duration-150 relative border-r'}
             style={{
               borderColor: 'var(--border-color)',
               backgroundColor: isActive ? 'var(--tab-bg-active)' : 'transparent',
@@ -76,7 +76,8 @@ const FileTabs = ({ openedFiles, activeFileIndex, onTabChange, onCloseFile }: Fi
             <button
               title='关闭'
               className={`
-                          ml-1 p-1 rounded-full hover:bg-slate-200 transition-colors flex items-center justify-center
+                          !text-[16px] ml-1 rounded-full hover:bg-slate-200 transition-colors flex items-center justify-center p-0 w-5 h-5 !shadow-none
+                          hover:!shadow
                           ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
                         `}
               onClick={(e) => {
@@ -84,9 +85,7 @@ const FileTabs = ({ openedFiles, activeFileIndex, onTabChange, onCloseFile }: Fi
                 onCloseFile(index)
               }}
             >
-              <svg width="10" height="10" viewBox="0 0 12 12" className="text-current">
-                <path d="M3 3L9 9M3 9L9 3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
+              ×
             </button>
           </div>
         )

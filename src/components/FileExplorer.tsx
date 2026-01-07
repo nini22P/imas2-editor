@@ -1,6 +1,6 @@
 import { useState, useCallback, memo, useEffect, useRef } from 'react'
 import useSWR from 'swr'
-import useLocalStorage from '../hooks/useLocalStorage'
+import useLocalState from '../hooks/useLocalState'
 
 export interface FileNode {
   name: string;
@@ -96,10 +96,8 @@ const FileExplorer = ({
   currentFilePath,
   onSelectFile
 }: FileExplorerProps) => {
-  const [expandedPathsArray, setExpandedPathsArray] = useState<string[] | null>(null)
+  const [expandedPathsArray, setExpandedPathsArray] = useLocalState<string[] | null>('expandedPaths', null)
   const [permissionDenied, setPermissionDenied] = useState(false)
-
-  useLocalStorage('expandedPaths', expandedPathsArray, setExpandedPathsArray)
 
   const expandedPaths = new Set(expandedPathsArray || [])
 
@@ -125,7 +123,7 @@ const FileExplorer = ({
         setExpandedPathsArray(newPaths)
       }
     }
-  }, [currentFilePath, expandedPathsArray])
+  }, [currentFilePath, expandedPathsArray, setExpandedPathsArray])
 
   const readDirectory = async (
     dirHandle: FileSystemDirectoryHandle,
@@ -226,7 +224,7 @@ const FileExplorer = ({
         return [...currentArr, path]
       }
     })
-  }, [])
+  }, [setExpandedPathsArray])
 
   if (!directoryHandle) {
     return (

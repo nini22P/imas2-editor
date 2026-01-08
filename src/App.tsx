@@ -74,7 +74,7 @@ export default function App() {
   const [activeFileIndex, setActiveFileIndex] = useLocalState<number>('activeFileIndex', -1)
   const [directoryHandle, setDirectoryHandle] = useLocalState<FileSystemDirectoryHandle | null>('directoryHandle', null, indexedDBOptions)
   const [sidebarVisible, setSidebarVisible] = useLocalState<boolean>('sidebarVisible', false)
-  const [enableCharacterCheck] = useLocalState<boolean>('enableCharacterCheck', false)
+  const enableCharacterCheck = true
 
   const mainRef = useRef<HTMLDivElement>(null)
 

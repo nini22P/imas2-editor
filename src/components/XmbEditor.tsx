@@ -19,7 +19,7 @@ const getUTF16BEByteLength = (str: string) => {
   return byteLength
 }
 
-const checkByteLength = (str: string, maxLength: number) => (getUTF16BEByteLength(str) <= maxLength)
+const checkByteLength = (str: string, maxLength: number) => (getUTF16BEByteLength(str) - maxLength)
 
 const splitStringByLength = (str: string, len: number) => {
   const regex = new RegExp(`.{1,${len}}`, 'g')
@@ -40,7 +40,7 @@ const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, o
   const { _text, translate, _offset, _size } = item
 
   const translationText = translate || ''
-  const isByteLengthValid = useMemo(() => checkByteLength(translationText, _size), [translationText, _size])
+  const exceededCount = useMemo(() => checkByteLength(translationText, _size), [translationText, _size])
   const invalidChars = useMemo(() => enableCharacterCheck ? checkCharacters(translationText) : [], [enableCharacterCheck, translationText])
 
   return (
@@ -61,19 +61,19 @@ const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, o
         <button onClick={() => onAdd(_offset)}>添加</button>
       ) : (
         <div className="space-y-0">
-          <span className="flex gap-0.25 flex-wrap">
-            <span className={`text-sm font-light px-2 rounded-t ${!isByteLengthValid || invalidChars.length > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
+          <span className="flex gap-1 flex-wrap">
+            <span className={`text-sm font-light px-2 rounded-t ${exceededCount > 0 || invalidChars.length > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
               译文 {displayIndex}
             </span>
 
-            {!isByteLengthValid && (
-              <span className='text-xs font px-2 rounded bg-red-400'>
-                字符长度超出
+            {exceededCount > 0 && (
+              <span className='text-sm font-light px-2 rounded-t bg-red-300'>
+                超出 {(exceededCount / 2).toFixed(1)} 个字符
               </span>
             )}
 
             {invalidChars.length > 0 && (
-              <span className='text-sm font-light px-2 rounded bg-red-300'>
+              <span className='text-sm font-light px-2 rounded-t bg-red-300'>
                 {invalidChars.join('')}
               </span>
             )}

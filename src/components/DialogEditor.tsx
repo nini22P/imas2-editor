@@ -26,17 +26,17 @@ const getLongestLineExceededCountConcise = (text: string, length: number): numbe
 }
 
 interface DialogRowProps {
-  original: string;
-  translation: string;
+  text: string;
+  translate: string;
   globalIndex: number;
   displayIndex: number;
   enableCharacterCheck: boolean;
   onTranslateChange: (value: string, index: number) => void;
 }
 
-const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enableCharacterCheck, onTranslateChange }: DialogRowProps) => {
-  const invalidChars = useMemo(() => enableCharacterCheck ? checkCharacters(translation) : [], [enableCharacterCheck, translation])
-  const exceededCount = useMemo(() => getLongestLineExceededCountConcise(translation, 26), [translation])
+const DialogRow = memo(({ text, translate, globalIndex, displayIndex, enableCharacterCheck, onTranslateChange }: DialogRowProps) => {
+  const invalidChars = useMemo(() => enableCharacterCheck ? checkCharacters(translate || '') : [], [enableCharacterCheck, translate])
+  const exceededCount = useMemo(() => getLongestLineExceededCountConcise(translate || '', 26), [translate])
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onTranslateChange(e.target.value, globalIndex)
@@ -51,7 +51,7 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enab
           </span>
         </span>
         <TextareaAutosize
-          value={original}
+          value={text}
           disabled
           readOnly
           spellCheck={false}
@@ -77,7 +77,7 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enab
           )}
         </span>
         <TextareaAutosize
-          value={translation}
+          value={translate || ''}
           onChange={handleChange}
           spellCheck={false}
           className="w-full bg-slate-100 p-1 rounded-b rounded-tr resize-none shadow-inner-sm"
@@ -87,8 +87,8 @@ const DialogRow = memo(({ original, translation, globalIndex, displayIndex, enab
   )
 }, (prevProps, nextProps) => {
   return (
-    prevProps.translation === nextProps.translation &&
-    prevProps.original === nextProps.original &&
+    prevProps.translate === nextProps.translate &&
+    prevProps.text === nextProps.text &&
     prevProps.globalIndex === nextProps.globalIndex
   )
 })
@@ -141,9 +141,9 @@ const DialogEditor = ({ data, enableCharacterCheck, setData, currentPage, onPage
               key={globalIndex}
               globalIndex={globalIndex}
               displayIndex={globalIndex + 1}
-              original={originalText}
+              text={originalText}
               enableCharacterCheck={enableCharacterCheck}
-              translation={currentItemsTranslate[index]}
+              translate={currentItemsTranslate[index]}
               onTranslateChange={handleTextChange}
             />
           )

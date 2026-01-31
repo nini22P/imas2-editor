@@ -39,9 +39,8 @@ interface XmbRowProps {
 const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, onAdd, onRemove, onAutoFormat }: XmbRowProps) => {
   const { _text, translate, _offset, _size } = item
 
-  const translationText = translate || ''
-  const exceededCount = useMemo(() => checkByteLength(translationText, _size), [translationText, _size])
-  const invalidChars = useMemo(() => enableCharacterCheck ? checkCharacters(translationText) : [], [enableCharacterCheck, translationText])
+  const exceededCount = useMemo(() => checkByteLength(translate || '', _size), [translate, _size])
+  const invalidChars = useMemo(() => enableCharacterCheck ? checkCharacters(translate || '') : [], [enableCharacterCheck, translate])
 
   return (
     <div className="grid grid-cols-2 max-lg:grid-cols-1 gap-2">
@@ -83,7 +82,7 @@ const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, o
             <button onClick={() => onRemove(_offset)} className='text-xs !py-0 !rounded-none !rounded-tr border-l-0'>删除</button>
           </span>
           <TextareaAutosize
-            value={translationText}
+            value={translate || ''}
             spellCheck={false}
             onChange={(e) => onTextChange(e.target.value, _offset)}
             className="w-full bg-slate-100 p-1 rounded-b resize-none shadow-inner-sm"

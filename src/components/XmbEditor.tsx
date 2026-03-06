@@ -21,9 +21,29 @@ const getUTF16BEByteLength = (str: string) => {
 
 const checkByteLength = (str: string, maxLength: number) => (getUTF16BEByteLength(str) - maxLength)
 
-const splitStringByLength = (str: string, len: number) => {
-  const regex = new RegExp(`.{1,${len}}`, 'g')
-  return str.match(regex) || []
+const splitStringByLength = (str: string, maxLength: number): string[] => {
+  const result: string[] = []
+  let currentLine = ''
+  let currentWeight = 0
+
+  for (const char of str) {
+    const weight = /[a-zA-Z0-9]/.test(char) ? 0.6 : 1.0
+
+    if (currentWeight + weight > maxLength) {
+      result.push(currentLine)
+      currentLine = char
+      currentWeight = weight
+    } else {
+      currentLine += char
+      currentWeight += weight
+    }
+  }
+
+  if (currentLine) {
+    result.push(currentLine)
+  }
+
+  return result
 }
 
 interface XmbRowProps {
@@ -78,8 +98,8 @@ const XmbRow = memo(({ item, displayIndex, enableCharacterCheck, onTextChange, o
             )}
 
             <span className='flex-1'></span>
-            <button onClick={() => onAutoFormat(_offset)} className='text-xs !py-0 !rounded-none !rounded-tl'>邮件自动排版</button>
-            <button onClick={() => onRemove(_offset)} className='text-xs !py-0 !rounded-none !rounded-tr border-l-0'>删除</button>
+            <button onClick={() => onAutoFormat(_offset)} className='text-xs py-0! rounded-none! rounded-tl!'>邮件自动排版</button>
+            <button onClick={() => onRemove(_offset)} className='text-xs py-0! rounded-none! rounded-tr! border-l-0'>删除</button>
           </span>
           <TextareaAutosize
             value={translate || ''}
